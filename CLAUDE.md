@@ -66,8 +66,8 @@ Equivalencias y trampas del cambio:
 - Partidas de la versión de Fabric: Cobblemon guarda equipo y PC en sus propios archivos y los datos de las fusiones van
   en el `persistentData` de cada Pokémon, así que se conservan; el registro de fusiones descubiertas (attachment de
   Fabric) no: se vuelve a llenar con las fusiones que el jugador tenga.
-- `neo_version` en `gradle.properties` (21.1.x): elegida sin poder comprobar qué pide Cobblemon 1.8.2; si al arrancar
-  dice que necesita una NeoForge más nueva, subirla.
+- `neo_version` en `gradle.properties`: 21.1.249, la NeoForge con la que juega el usuario (2026-10-24), para que
+  `runClient` sea igual que su juego. En `neoforge.mods.toml` se pide solo `[21.1.0,)`: no se usa nada más nuevo.
 
 ## Dependencia de Cobblemon (no tocar sin motivo)
 
