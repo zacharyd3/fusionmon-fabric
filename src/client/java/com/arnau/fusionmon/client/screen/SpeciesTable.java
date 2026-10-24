@@ -1,7 +1,7 @@
 package com.arnau.fusionmon.client.screen;
 
 import com.arnau.fusionmon.Fusionmon;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +31,7 @@ final class SpeciesTable {
     }
 
     static SpeciesTable load() {
-        Path csv = FabricLoader.getInstance().getGameDir().toAbsolutePath().normalize().getParent()
+        Path csv = FMLPaths.GAMEDIR.get().toAbsolutePath().normalize().getParent()
                 .resolve("docs").resolve("species").resolve("especies.csv");
         Map<String, Row> rows = new HashMap<>();
         if (!Files.isRegularFile(csv)) {

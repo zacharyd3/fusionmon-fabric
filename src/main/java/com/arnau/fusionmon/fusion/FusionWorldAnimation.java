@@ -5,8 +5,6 @@ import com.cobblemon.mod.common.CobblemonSounds;
 import com.cobblemon.mod.common.battles.BattleRegistry;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -20,6 +18,9 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -85,9 +86,10 @@ public final class FusionWorldAnimation {
     }
 
     public static void initialize() {
-        ServerTickEvents.END_SERVER_TICK.register(server -> tickAll());
+        // Al final de cada tick del servidor
+        NeoForge.EVENT_BUS.addListener(ServerTickEvent.Post.class, event -> tickAll());
         // Si el servidor se cierra a mitad, la fusión se hace igual (si no, el inyector ya gastado se perdería)
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> finishAll());
+        NeoForge.EVENT_BUS.addListener(ServerStoppingEvent.class, event -> finishAll());
     }
 
     /** Si la fusión de head + body se puede animar en el mundo: los dos fuera, vivos, en su mundo y cerca. */

@@ -1,91 +1,99 @@
 plugins {
-	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
-	// No escribimos Kotlin, pero Loom solo remapea los metadatos Kotlin de Cobblemon
-	// (los que lee kotlin-reflect) si este plugin está aplicado. Sin él: ClassNotFoundException class_2960.
-	id 'org.jetbrains.kotlin.jvm' version "${kotlin_version}"
+	id 'java'
 	id 'maven-publish'
+	// ModDevGradle: el plugin oficial de NeoForge (lo que Loom era en Fabric). Prepara Minecraft con los nombres de
+	// Mojang, que son también los del juego publicado: no hay que remapear nada (ni el jar del mod ni el de Cobblemon)
+	id 'net.neoforged.moddev' version "${moddev_version}"
+}
+
+base {
+	archivesName = project.mod_id
 }
 
 repositories {
-	// Maven oficial de Cobblemon. Su POM trae Fabric Language Kotlin (y con él Kotlin) y el resto de dependencias.
+	// Maven oficial de Cobblemon. Su POM trae Kotlin for Forge (y con él Kotlin) y el resto de dependencias.
 	maven {
 		name = "Cobblemon"
 		url = "https://maven.impactdev.net/repository/development/"
 	}
+	// Kotlin for Forge (la versión de NeoForge de Fabric Language Kotlin): Cobblemon está escrito en Kotlin
+	maven {
+		name = "Kotlin for Forge"
+		url = "https://thedarkcolour.github.io/KotlinForForge/"
+		content { includeGroup "thedarkcolour" }
+	}
 }
 
-loom {
-	splitEnvironmentSourceSets()
-
-	mods {
-		"fusionmon" {
-			sourceSet sourceSets.main
-			sourceSet sourceSets.client
-		}
+sourceSets {
+	main {
+		// Lo de cliente sigue en src/client, como con Fabric, pero se compila junto con lo común: ModDevGradle no
+		// separa los dos lados. Ojo: el código común no puede usar clases de cliente (en un servidor no existen),
+		// ahora no lo avisa el compilador
+		java.srcDir 'src/client/java'
+		resources.srcDir 'src/client/resources'
 	}
+}
+
+neoForge {
+	version = project.neo_version
 
 	runs {
 		client {
-			// Sin esto Loom usa un nombre aleatorio (Player123) en cada arranque, y como Cobblemon
-			// guarda el equipo y el PC por jugador, cada arranque parecía un jugador nuevo
-			programArgs "--username", "Arnau"
+			client()
+			// Sin esto el jugador se llama "Dev" (o el que toque), y como Cobblemon guarda el equipo y el PC por
+			// jugador, cambiar de nombre parece un jugador nuevo
+			programArguments.addAll "--username", "Arnau"
 			// Sin argumentos Java usaba G1 con el heap creciendo desde 512 MB: una pausa de ~9 ms cada ~7 s,
 			// que a 240 Hz son 2-3 frames perdidos. Heap fijo + ZGC generacional: pausas < 1 ms. Solo afecta a runClient
-			vmArgs "-Xms8G", "-Xmx8G", "-XX:+UseZGC", "-XX:+ZGenerational"
+			jvmArguments.addAll "-Xms8G", "-Xmx8G", "-XX:+UseZGC", "-XX:+ZGenerational"
 		}
 		server {
+			server()
+			programArgument "--nogui"
 			// Carpeta propia: cliente y servidor se lanzan a la vez y si no compartirían
 			// logs, configuración y mundo en run/
-			runDir "run/server"
+			gameDirectory = project.file("run/server")
+		}
+	}
+
+	mods {
+		"${mod_id}" {
+			sourceSet sourceSets.main
 		}
 	}
 }
 
-// Showdown (GraalJS, dentro de Cobblemon) necesita ICU4J. Cobblemon pide la 71.1, pero Gradle la sube a la 73.2
-// del cliente de Minecraft, y runServer quita las librerías solo de cliente: el servidor de pruebas se quedaba sin
-// ICU4J (NoClassDefFoundError com/ibm/icu/text/DateFormat). En un servidor real no pasa, porque Cobblemon la lleva
-// dentro de su jar; aquí se añade esa misma versión solo al servidor de pruebas (no va al jar del mod).
-tasks.named("runServer") {
-	classpath(project.configurations.detachedConfiguration(project.dependencies.create("com.ibm.icu:icu4j:71.1")))
-}
-
 dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings loom.officialMojangMappings()
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "com.cobblemon:neoforge:${project.cobblemon_version}"
 
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-
-	modImplementation "com.cobblemon:fabric:${project.cobblemon_version}"
+	// El código Java usa kotlin.Unit (los eventos de Cobblemon son de Kotlin). En el juego lo pone Kotlin for
+	// Forge; esto es solo para compilar, por si el POM de Cobblemon no deja Kotlin al compilar
+	compileOnly "org.jetbrains.kotlin:kotlin-stdlib:${project.kotlin_version}"
 }
 
 processResources {
 	def version = project.version
 	inputs.property "version", version
+	// La descripción lleva "Pokémon": que no dependa del idioma del sistema
+	filteringCharset = "UTF-8"
 
-	filesMatching("fabric.mod.json") {
+	filesMatching("META-INF/neoforge.mods.toml") {
 		expand "version": version
 	}
 }
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 21
-}
-
-kotlin {
-	compilerOptions {
-		jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
-	}
+	// Los comentarios y los mensajes del log van en español: que no dependa del idioma del sistema
+	it.options.encoding = "UTF-8"
 }
 
 java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-	// If you remove this line, sources will not be generated.
-	withSourcesJar()
+	// Gradle corre con Java 26, pero Minecraft 1.21.1 y Cobblemon exigen Java 21: ModDevGradle compila y lanza el
+	// juego (runClient, runServer) con el JDK 21 de esta toolchain
+	toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	withSourcesJar()
 }
 
 jar {
@@ -111,13 +119,5 @@ publishing {
 		// Notice: This block does NOT have the same function as the block in the top level.
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
-	}
-}
-// Gradle corre con Java 26, pero Cobblemon exige Java 21 para arrancar: el juego (cliente y servidor) se lanza con 21
-["runClient", "runServer"].each { runTask ->
-	tasks.named(runTask) {
-		javaLauncher = javaToolchains.launcherFor {
-			languageVersion = JavaLanguageVersion.of(21)
-		}
 	}
 }

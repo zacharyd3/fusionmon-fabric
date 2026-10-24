@@ -28,7 +28,7 @@ bin/
 
 *.DS_Store
 
-# fabric
+# runClient / runServer
 
 run/
 

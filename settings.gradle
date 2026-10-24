@@ -1,11 +1,11 @@
 pluginManagement {
 	repositories {
-		maven {
-			name = 'Fabric'
-			url = 'https://maven.fabricmc.net/'
-		}
-		mavenCentral()
+		// ModDevGradle está en el portal de plugins de Gradle; Minecraft y NeoForge los añade él
 		gradlePluginPortal()
+		maven {
+			name = 'NeoForged'
+			url = 'https://maven.neoforged.net/releases'
+		}
 	}
 }
 

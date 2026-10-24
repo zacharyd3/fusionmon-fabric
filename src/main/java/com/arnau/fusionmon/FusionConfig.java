@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.loading.FMLPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,7 +141,7 @@ public final class FusionConfig {
      * defecto.
      */
     private static Data read(boolean write) {
-        Path path = FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
+        Path path = FMLPaths.CONFIGDIR.get().resolve(FILE_NAME);
         if (!Files.exists(path)) {
             Data data = new Data();
             if (write) {

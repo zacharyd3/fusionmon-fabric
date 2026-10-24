@@ -10,6 +10,7 @@ import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -17,8 +18,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -26,6 +25,8 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,48 +62,52 @@ public final class FusionCommands {
     }
 
     public static void register() {
+        // NeoForge pide los comandos al arrancar el servidor (y al recargar datos con /reload)
+        NeoForge.EVENT_BUS.addListener(FusionCommands::registerCommands);
+    }
+
+    private static void registerCommands(RegisterCommandsEvent event) {
+        CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
         // spawn crea cualquier fusión sin capturar nada: solo en desarrollo (runClient/runServer) o con el interruptor de
         // grabación (Fusionmon.recordingTools). La gracia del mod es descubrir las fusiones jugando. info y unfuse se
         // quedan para los admins: arreglan problemas
         boolean dev = Fusionmon.recordingTools();
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal("fusionmon")
-                    .requires(source -> source.hasPermission(2))
-                    .then(Commands.literal("info")
-                            .then(Commands.argument(SLOT, IntegerArgumentType.integer(1, 6))
-                                    .executes(FusionCommands::info)))
-                    .then(Commands.literal("unfuse")
-                            .then(Commands.argument(SLOT, IntegerArgumentType.integer(1, 6))
-                                    .executes(FusionCommands::unfuse)));
-            if (dev) {
-                root.then(Commands.literal("spawn")
-                        .then(Commands.argument(HEAD, StringArgumentType.word())
-                                .suggests((context, builder) -> suggestSpecies(builder, false))
-                                .then(Commands.argument(BODY, StringArgumentType.word())
-                                        .suggests((context, builder) -> suggestSpecies(builder, true))
-                                        .executes(context -> spawn(context, 1))
-                                        .then(Commands.argument(COUNT, IntegerArgumentType.integer(1, MAX_SPAWN))
-                                                .executes(context -> spawn(context,
-                                                        IntegerArgumentType.getInteger(context, COUNT)))))));
-                // forget borra el Fusion Album propio: las parejas vuelven a salir en silueta, para regrabar la revelación
-                root.then(Commands.literal("forget").executes(FusionCommands::forget));
-            }
-            if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-                // reveal on: ninguna pareja sale en silueta. Solo en runClient/runServer, ni siquiera con el interruptor
-                // de grabación (decisión del usuario): en los vídeos las siluetas son parte de la gracia
-                root.then(Commands.literal("reveal")
-                        .then(Commands.literal("on").executes(context -> reveal(context, true)))
-                        .then(Commands.literal("off").executes(context -> reveal(context, false))));
-            }
-            dispatcher.register(root);
+        LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal("fusionmon")
+                .requires(source -> source.hasPermission(2))
+                .then(Commands.literal("info")
+                        .then(Commands.argument(SLOT, IntegerArgumentType.integer(1, 6))
+                                .executes(FusionCommands::info)))
+                .then(Commands.literal("unfuse")
+                        .then(Commands.argument(SLOT, IntegerArgumentType.integer(1, 6))
+                                .executes(FusionCommands::unfuse)));
+        if (dev) {
+            root.then(Commands.literal("spawn")
+                    .then(Commands.argument(HEAD, StringArgumentType.word())
+                            .suggests((context, builder) -> suggestSpecies(builder, false))
+                            .then(Commands.argument(BODY, StringArgumentType.word())
+                                    .suggests((context, builder) -> suggestSpecies(builder, true))
+                                    .executes(context -> spawn(context, 1))
+                                    .then(Commands.argument(COUNT, IntegerArgumentType.integer(1, MAX_SPAWN))
+                                            .executes(context -> spawn(context,
+                                                    IntegerArgumentType.getInteger(context, COUNT)))))));
+            // forget borra el Fusion Album propio: las parejas vuelven a salir en silueta, para regrabar la revelación
+            root.then(Commands.literal("forget").executes(FusionCommands::forget));
+        }
+        if (Fusionmon.isDevelopment()) {
+            // reveal on: ninguna pareja sale en silueta. Solo en runClient/runServer, ni siquiera con el interruptor
+            // de grabación (decisión del usuario): en los vídeos las siluetas son parte de la gracia
+            root.then(Commands.literal("reveal")
+                    .then(Commands.literal("on").executes(context -> reveal(context, true)))
+                    .then(Commands.literal("off").executes(context -> reveal(context, false))));
+        }
+        dispatcher.register(root);
 
-            // /fusionalbum: el Fusion Album del jugador (sus fusiones descubiertas), para todos; como Shift + clic con el
-            // inyector
-            dispatcher.register(Commands.literal("fusionalbum").executes(context -> {
-                FusionDiscovery.open(context.getSource().getPlayerOrException());
-                return 1;
-            }));
-        });
+        // /fusionalbum: el Fusion Album del jugador (sus fusiones descubiertas), para todos; como Shift + clic con el
+        // inyector
+        dispatcher.register(Commands.literal("fusionalbum").executes(context -> {
+            FusionDiscovery.open(context.getSource().getPlayerOrException());
+            return 1;
+        }));
     }
 
     private static CompletableFuture<Suggestions> suggestSpecies(SuggestionsBuilder builder, boolean body) {

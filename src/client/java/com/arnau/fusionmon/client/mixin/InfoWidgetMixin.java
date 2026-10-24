@@ -31,7 +31,7 @@ import java.util.List;
  * cabeza + cuerpo) y, al pasar el ratón por encima, cuál es cada parte.
  *
  * Es el único sitio donde InfoWidget pide el nombre de la especie, así que se cambia esa llamada. renderWidget es un
- * método de Minecraft: con remap = false ponemos también su nombre del juego publicado (method_48579).
+ * método de Minecraft: en NeoForge se llama igual en desarrollo y en el juego publicado (nombres de Mojang).
  */
 @Mixin(value = InfoWidget.class, remap = false)
 public abstract class InfoWidgetMixin {
@@ -48,7 +48,7 @@ public abstract class InfoWidgetMixin {
     @Final
     private Pokemon pokemon;
 
-    @WrapOperation(method = {"renderWidget", "method_48579"}, at = @At(value = "INVOKE",
+    @WrapOperation(method = "renderWidget", at = @At(value = "INVOKE",
             target = "Lcom/cobblemon/mod/common/pokemon/Species;getTranslatedName"))
     private MutableComponent fusionmon$fusionSpecies(Species species, Operation<MutableComponent> original) {
         MutableComponent head = original.call(species);
@@ -72,7 +72,7 @@ public abstract class InfoWidgetMixin {
         }
     }
 
-    @Inject(method = {"renderWidget", "method_48579"}, at = @At("TAIL"))
+    @Inject(method = "renderWidget", at = @At("TAIL"))
     private void fusionmon$partsTooltip(GuiGraphics graphics, int mouseX, int mouseY, float partialTick,
                                         CallbackInfo ci) {
         try {

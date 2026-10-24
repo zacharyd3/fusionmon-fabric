@@ -1,6 +1,6 @@
 # Fusionmon
 
-A Fabric mod for **Minecraft 1.21.1** that adds Pokémon fusions to **Cobblemon 1.8.1**, inspired by Pokémon Infinite Fusion.
+A NeoForge mod for **Minecraft 1.21.1** that adds Pokémon fusions to **Cobblemon 1.7.3 – 1.8.x**, inspired by Pokémon Infinite Fusion.
 
 Every pair is built on the fly, so any two species can be fused: their own model, name, types and stats.
 
@@ -26,11 +26,15 @@ Fusion Injector (crafting table): redstone in the bottom-left corner, lapis lazu
 
 ## Requirements
 
-- Minecraft 1.21.1 with Fabric Loader 0.17.2 or newer
-- Fabric API
-- Cobblemon 1.8.1
+- Minecraft 1.21.1 with NeoForge 21.1
+- Cobblemon 1.7.3 to 1.8.x (NeoForge version), with its dependency Kotlin for Forge
 
 Install it on both the client and the server.
+
+## Building
+
+`./gradlew build` (the jar ends up in `build/libs/`). Gradle builds with a Java 21 toolchain; `./gradlew runClient` and
+`./gradlew runServer` start a development game.
 
 ## License
 

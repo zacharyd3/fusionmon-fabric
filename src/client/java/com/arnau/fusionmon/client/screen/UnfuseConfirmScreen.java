@@ -1,13 +1,14 @@
 package com.arnau.fusionmon.client.screen;
 
+import com.arnau.fusionmon.client.ClientPayloads;
 import com.arnau.fusionmon.network.FusionPartView;
 import com.arnau.fusionmon.network.OpenUnfuseScreenPayload;
 import com.arnau.fusionmon.network.UnfuseChoicePayload;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * Pantalla de confirmación para separar una fusión: arriba, cabeza ← fusión → cuerpo (FusionScreenBase, como la de
@@ -80,7 +81,7 @@ public class UnfuseConfirmScreen extends FusionScreenBase {
     }
 
     private static void send(UnfuseChoicePayload.Action action) {
-        ClientPlayNetworking.send(new UnfuseChoicePayload(action));
+        PacketDistributor.sendToServer(new UnfuseChoicePayload(action));
     }
 
     @Override
@@ -93,7 +94,7 @@ public class UnfuseConfirmScreen extends FusionScreenBase {
 
     @Override
     protected void sendCancel() {
-        if (ClientPlayNetworking.canSend(UnfuseChoicePayload.TYPE)) {
+        if (ClientPayloads.canSend(UnfuseChoicePayload.TYPE)) {
             send(UnfuseChoicePayload.Action.CANCEL);
         }
     }

@@ -25,7 +25,8 @@ if (-not $OutDir) { $OutDir = Join-Path $repo 'docs\species' }
 if (-not $CobblemonVersion) {
     $CobblemonVersion = ((Get-Content (Join-Path $repo 'gradle.properties')) -match '^cobblemon_version=' -replace '^cobblemon_version=', '').Trim()
 }
-$jar = Get-ChildItem "$env:USERPROFILE\.gradle\caches\modules-2\files-2.1\com.cobblemon\fabric\$CobblemonVersion" -Recurse -Filter '*.jar' |
+# El jar de NeoForge (el del proyecto desde 2026-10-24); los modelos son los mismos que en el de Fabric
+$jar = Get-ChildItem "$env:USERPROFILE\.gradle\caches\modules-2\files-2.1\com.cobblemon\neoforge\$CobblemonVersion" -Recurse -Filter '*.jar' |
         Where-Object { $_.Name -notmatch 'sources' } | Select-Object -First 1
 $sources = @(@{ tag = 'Cobblemon'; path = $jar.FullName })
 $packDir = Join-Path $repo 'run\resourcepacks'

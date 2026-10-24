@@ -11,12 +11,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * Pantalla de resumen de Cobblemon: pinta al final los tooltips de Fusionmon, por delante de sus paneles (ver
- * SummaryTooltip). render es un método de Minecraft: con remap = false ponemos también su nombre del juego publicado.
+ * SummaryTooltip). render es un método de Minecraft: en NeoForge se llama igual en desarrollo y en el juego publicado.
  */
 @Mixin(value = Summary.class, remap = false)
 public abstract class SummaryMixin {
 
-    @Inject(method = {"render", "method_25394"}, at = @At("TAIL"))
+    @Inject(method = "render", at = @At("TAIL"))
     private void fusionmon$renderTooltip(GuiGraphics graphics, int mouseX, int mouseY, float partialTick,
                                          CallbackInfo ci) {
         try {
