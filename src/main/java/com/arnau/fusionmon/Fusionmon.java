@@ -1,9 +1,14 @@
 package com.arnau.fusionmon;
 
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
-
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 
 import java.nio.file.Files;
 
@@ -20,9 +25,13 @@ import com.arnau.fusionmon.network.ModNetworking;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.pokemon.aspect.AspectProvider;
 import com.cobblemon.mod.common.api.pokemon.stats.StatProvider;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
-public class Fusionmon implements ModInitializer {
+/**
+ * Arranque del mod (parte común). NeoForge crea esta clase al cargar el juego, después de Cobblemon (ordering AFTER en
+ * neoforge.mods.toml); la parte de cliente es FusionmonClient.
+ */
+@Mod(Fusionmon.MOD_ID)
+public class Fusionmon {
 	public static final String MOD_ID = "fusionmon";
 
 	// This logger is used to write text to the console and the log file.
@@ -30,29 +39,35 @@ public class Fusionmon implements ModInitializer {
 	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-	@Override
-	public void onInitialize() {
+	/** modBus: el bus de eventos de carga del mod (registros, mensajes); los del juego van por NeoForge.EVENT_BUS. */
+	public Fusionmon(IEventBus modBus) {
 		// Opciones del servidor (config/fusionmon.json): antes de nada que calcule stats
 		FusionConfig.load();
-		ModItems.initialize();
+		ModItems.initialize(modBus);
 		FusionCommands.register();
-		ModNetworking.initialize();
+		ModNetworking.initialize(modBus);
+		// Registro de fusiones descubiertas de cada jugador (dato guardado con su partida)
+		FusionDiscovery.initialize(modBus);
+		// Fusión animada en el mundo cuando los dos Pokémon están fuera (avanza en cada tick del servidor)
+		FusionWorldAnimation.initialize();
+		// Lo que se engancha a Cobblemon, en el hilo principal y uno detrás de otro: NeoForge construye los mods a la vez
+		// en varios hilos (Fabric, uno a uno), y otro addon de Cobblemon podría estar apuntando lo suyo en las mismas
+		// listas en ese momento. Sigue siendo mucho antes de que exista ningún Pokémon
+		modBus.addListener(FMLCommonSetupEvent.class, event -> event.enqueueWork(Fusionmon::hookCobblemon));
+
+		// Antes de cargar los mundos (y con ellos ningún Pokémon), como SERVER_STARTING en Fabric
+		NeoForge.EVENT_BUS.addListener(ServerAboutToStartEvent.class, event -> checkStatProvider());
+		// Enganches opcionales que no se han podido aplicar (ver MixinHealth): al log
+		NeoForge.EVENT_BUS.addListener(ServerStartedEvent.class, event -> MixinHealth.check());
+	}
+
+	private static void hookCobblemon() {
 		// Envuelve la calculadora de stats de Cobblemon para que las fusiones usen sus propios stats base
 		Cobblemon.INSTANCE.setStatProvider(new FusionStatProvider(Cobblemon.INSTANCE.getStatProvider()));
 		// Al subir de nivel, la fusión también aprende los movimientos del cuerpo
 		FusionLevelUp.register();
 		// Etiquetas (aspects) que dicen al cliente que un Pokémon es una fusión y quién es su cuerpo
 		AspectProvider.Companion.register(new FusionAspects());
-		// Registro de fusiones descubiertas de cada jugador (dato guardado con su partida)
-		FusionDiscovery.initialize();
-		// Fusión animada en el mundo cuando los dos Pokémon están fuera (avanza en cada tick del servidor)
-		FusionWorldAnimation.initialize();
-
-		ServerLifecycleEvents.SERVER_STARTING.register(server -> checkStatProvider());
-		// Enganches opcionales que no se han podido aplicar (ver MixinHealth): al log
-		ServerLifecycleEvents.SERVER_STARTED.register(server -> MixinHealth.check());
-
-		LOGGER.info("Hello Fabric world!");
 	}
 
 	/**
@@ -83,10 +98,14 @@ public class Fusionmon implements ModInitializer {
 	 * es descubrir las fusiones jugando.
 	 */
 	public static boolean recordingTools() {
-		FabricLoader loader = FabricLoader.getInstance();
-		return loader.isDevelopmentEnvironment()
+		return isDevelopment()
 				|| FusionConfig.creatorTools()
 				|| Boolean.getBoolean("fusionmon.devtools")
-				|| Files.exists(loader.getConfigDir().resolve("fusionmon-devtools"));
+				|| Files.exists(FMLPaths.CONFIGDIR.get().resolve("fusionmon-devtools"));
+	}
+
+	/** En desarrollo (runClient/runServer), no con el jar publicado: lo que en Fabric era isDevelopmentEnvironment. */
+	public static boolean isDevelopment() {
+		return !FMLEnvironment.production;
 	}
 }

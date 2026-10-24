@@ -6,7 +6,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -40,7 +40,7 @@ final class SpeciesReview {
     }
 
     static SpeciesReview load() {
-        SpeciesReview review = new SpeciesReview(FabricLoader.getInstance().getGameDir()
+        SpeciesReview review = new SpeciesReview(FMLPaths.GAMEDIR.get()
                 .resolve(Fusionmon.MOD_ID).resolve("species-review.json"));
         if (!Files.isRegularFile(review.file)) {
             return review;

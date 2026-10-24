@@ -1,15 +1,16 @@
 package com.arnau.fusionmon.client.screen;
 
+import com.arnau.fusionmon.client.ClientPayloads;
 import com.arnau.fusionmon.network.FusionChoicePayload;
 import com.arnau.fusionmon.network.FusionPartView;
 import com.arnau.fusionmon.network.FusionPreview;
 import com.arnau.fusionmon.network.OpenFusionScreenPayload;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.List;
 
@@ -135,7 +136,7 @@ public class FusionConfirmScreen extends FusionScreenBase {
                     // se anima en el mundo (FusionResultPayload)
                     FusionAnimationScreen.await(new FusionAnimationScreen(head(), body(), preview().view()));
                     // answer cierra esta pantalla (sin contar como cancelar)
-                    answer(() -> ClientPlayNetworking.send(
+                    answer(() -> PacketDistributor.sendToServer(
                             new FusionChoicePayload(true, swapped, natureFromB, abilityFromB)));
                 })
                 .bounds(leftX, acceptY, OPTION_WIDTH, FusionScreenLayout.BUTTON)
@@ -175,8 +176,8 @@ public class FusionConfirmScreen extends FusionScreenBase {
 
     @Override
     protected void sendCancel() {
-        if (ClientPlayNetworking.canSend(FusionChoicePayload.TYPE)) {
-            ClientPlayNetworking.send(FusionChoicePayload.cancel());
+        if (ClientPayloads.canSend(FusionChoicePayload.TYPE)) {
+            PacketDistributor.sendToServer(FusionChoicePayload.cancel());
         }
     }
 

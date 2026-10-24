@@ -57,21 +57,21 @@ public class FusionInjectorItem extends Item {
      */
     public static void refundOne(ServerPlayer player) {
         if (!player.getAbilities().instabuild) {
-            player.getInventory().placeItemBackInInventory(new ItemStack(ModItems.FUSION_INJECTOR));
+            player.getInventory().placeItemBackInInventory(new ItemStack(ModItems.FUSION_INJECTOR.get()));
         }
     }
 
     private static ItemStack findInjector(Player player) {
         for (InteractionHand hand : InteractionHand.values()) {
             ItemStack stack = player.getItemInHand(hand);
-            if (stack.is(ModItems.FUSION_INJECTOR)) {
+            if (stack.is(ModItems.FUSION_INJECTOR.get())) {
                 return stack;
             }
         }
         Inventory inventory = player.getInventory();
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
             ItemStack stack = inventory.getItem(slot);
-            if (stack.is(ModItems.FUSION_INJECTOR)) {
+            if (stack.is(ModItems.FUSION_INJECTOR.get())) {
                 return stack;
             }
         }

@@ -26,7 +26,7 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(value = PokemonOnShoulderRenderer.class, remap = false)
 public abstract class PokemonOnShoulderRendererMixin {
 
-    // Solo por nombre: la firma lleva clases de Minecraft, que con remap = false no se traducen. Hay varios métodos
+    // Solo por nombre: la firma lleva clases de Minecraft (en Fabric no se traducían con remap = false). Hay varios métodos
     // render y con el nombre solo Mixin coge el primero: "render*" los coge todos (también la segunda pasada, si
     // está en uno de ellos), y la que sobra se reconoce por no tener estado
     @WrapOperation(method = "render*", at = @At(value = "INVOKE",

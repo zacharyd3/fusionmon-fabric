@@ -20,10 +20,10 @@ import com.cobblemon.mod.common.pokemon.Nature;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.RenderablePokemon;
 import kotlin.Unit;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -122,7 +122,7 @@ public final class FusionSelection {
 
         PENDING_REVERSES.remove(player.getUUID());
         PENDING_FUSIONS.put(player.getUUID(), new PendingFusion(firstId, secondId));
-        ServerPlayNetworking.send(player, fusionScreen(player, first, second, false));
+        PacketDistributor.sendToPlayer(player, fusionScreen(player, first, second, false));
     }
 
     private static void revertMega(ServerPlayer player, Pokemon pokemon) {
@@ -161,7 +161,7 @@ public final class FusionSelection {
         FusionService.giveFusionExperience(fused, parts);
         PENDING_FUSIONS.remove(player.getUUID());
         PENDING_REVERSES.put(player.getUUID(), fused.getUuid());
-        ServerPlayNetworking.send(player, fusionScreen(player, parts.body(), parts.head(), true));
+        PacketDistributor.sendToPlayer(player, fusionScreen(player, parts.body(), parts.head(), true));
     }
 
     /** "+Ataque  −At. Esp." o "Neutra" si la naturaleza no cambia ningún stat. */
@@ -220,11 +220,11 @@ public final class FusionSelection {
             UUID bodyId = body.getUuid();
             FusionWorldAnimation.start(player, head, body,
                     () -> fuseAfterAnimation(player, headId, bodyId, natureFromBody, abilityFromBody));
-            ServerPlayNetworking.send(player, new FusionResultPayload(true));
+            PacketDistributor.sendToPlayer(player, new FusionResultPayload(true));
             return;
         }
         fuseNow(player, head, body, natureFromBody, abilityFromBody);
-        ServerPlayNetworking.send(player, new FusionResultPayload(false));
+        PacketDistributor.sendToPlayer(player, new FusionResultPayload(false));
     }
 
     private static void fuseNow(ServerPlayer player, Pokemon head, Pokemon body,
@@ -268,7 +268,7 @@ public final class FusionSelection {
         }
         PENDING_UNFUSES.put(player.getUUID(), fusedId);
         // La fusión con sus tipos y nombre de fusión (PokemonMixin) y su aspecto de fusión (los aspects)
-        ServerPlayNetworking.send(player, new OpenUnfuseScreenPayload(
+        PacketDistributor.sendToPlayer(player, new OpenUnfuseScreenPayload(
                 FusionPartView.of(fused), FusionPartView.of(parts.head()), FusionPartView.of(parts.body()),
                 FusionData.experienceGained(fused), FusionService.hasRoomForBody(player)));
     }
@@ -354,7 +354,7 @@ public final class FusionSelection {
         FusionService.reverse(player, fused, parts, choice.swapped(), natureSource == body, abilitySource == body);
         player.sendSystemMessage(Component.translatable("message.fusionmon.reversed", headName, bodyName));
         // Invertir siempre se anima en la pantalla
-        ServerPlayNetworking.send(player, new FusionResultPayload(false));
+        PacketDistributor.sendToPlayer(player, new FusionResultPayload(false));
     }
 
     public static void forget(ServerPlayer player) {

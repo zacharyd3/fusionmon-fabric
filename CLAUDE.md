@@ -1,19 +1,19 @@
 # Fusionmon
 
-Mod de Fabric para **Minecraft 1.21.1** que añade fusiones de Pokémon a **Cobblemon 1.7.3, 1.8.1 y 1.8.2** (un solo jar), inspirado en Pokémon Infinite Fusion. Los datos de la fusión (nombre, tipos, stats) se calculan dinámicamente; nunca se guardan tablas de combinaciones.
+Mod de **NeoForge** (hasta el 2026-10-24, Fabric: ver "NeoForge" más abajo) para **Minecraft 1.21.1** que añade fusiones de Pokémon a **Cobblemon 1.7.3, 1.8.1 y 1.8.2** (un solo jar), inspirado en Pokémon Infinite Fusion. Los datos de la fusión (nombre, tipos, stats) se calculan dinámicamente; nunca se guardan tablas de combinaciones.
 
 ## Cómo trabajar con el usuario
 
-- Habla en **español**. El usuario es nuevo en modding de Minecraft (sabe C#/Unity): explica Fabric/Gradle/Kotlin/mixins sin dar nada por sabido, paso a paso.
+- Habla en **español**. El usuario es nuevo en modding de Minecraft (sabe C#/Unity): explica NeoForge/Gradle/Kotlin/mixins sin dar nada por sabido, paso a paso.
 - Ciclo: investigar la API de Cobblemon → explicar el plan → implementar en pasos pequeños → `gradlew build` → el usuario prueba en el juego → **commit por paso** cuando confirma que funciona.
 - No añadir dependencias ni cambiar versiones de Java "a ver si funciona": entender primero la causa.
 - Comentarios del código en español, explicando el *porqué*.
 
 ## Entorno y comandos
 
-- Gradle/Loom corre con **Java 26**; Minecraft con **Java 21** (`runClient` usa toolchain 21). Es deliberado, no cambiarlo.
+- Gradle corre con **Java 26**; ModDevGradle compila y lanza Minecraft con **Java 21** (`java.toolchain` en `build.gradle`: la detecta en `~/.jdks`). Es deliberado, no cambiarlo.
 - Compilar (PowerShell): `$env:JAVA_HOME='C:\Users\Arnau\.jdks\temurin-26.0.2.1'; .\gradlew.bat build`
-- Lanzar el juego: lo mismo con `runClient`, o la configuración "Minecraft Client" de IntelliJ. El jugador de desarrollo se llama siempre `Arnau` (`build.gradle` → `loom.runs.client`), para que Cobblemon conserve equipo/PC entre arranques.
+- Lanzar el juego: lo mismo con `runClient`, o la configuración "Minecraft Client" de IntelliJ. El jugador de desarrollo se llama siempre `Arnau` (`build.gradle` → `neoForge.runs.client`), para que Cobblemon conserve equipo/PC entre arranques.
 - `git` no está en el PATH: usar el de GitHub Desktop, `%LOCALAPPDATA%\GitHubDesktop\app-*\resources\app\git\cmd\git.exe`.
 - Logs y crashes: `run/logs/latest.log`, `run/crash-reports/`. Showdown desempaquetado en `run/showdown/`.
 - Comandos de prueba en el juego (con trucos): `/fusionmon info <hueco>`, `/fusionmon unfuse <hueco>`, `/fusionmon spawn <cabeza> <cuerpo> [n]` (fusiones salvajes en corro; `random`, cuerpo `none` = normales), `/fusionmon forget` (vacía tu Fusion Album: las parejas vuelven a salir en silueta; también quita `reveal`), `/fusionmon reveal on|off` (con `on` ninguna pareja sale en silueta, sin apuntarlas en el Fusion Album; attachment `fusionmon:reveal_all`; **solo en `runClient`/`runServer`**, ni con el interruptor de grabación: decisión del usuario), `spawn` y `forget` solo en desarrollo, o con **`"creatorTools": true` en `config/fusionmon.json`** (0.1.3-beta, la forma documentada para creadores de contenido y servidores: además da `/fusionviewer` con renders P en el cliente; `reveal`, `/fusioninspect` y los ajustes finos de `/fusionvisual` siguen solo en desarrollo, decisión del usuario 2026-10-22), o con el archivo `config/fusionmon-devtools` o el argumento de Java `-Dfusionmon.devtools=true` (`Fusionmon.recordingTools`: para grabar vídeos en la instancia de CurseForge con el jar publicado; CurseForge borra los argumentos de Java al lanzar, por eso el archivo), `/pokegive <especie>`, `/spawnpokemon <especie> lvl=N`.
@@ -22,7 +22,7 @@ Mod de Fabric para **Minecraft 1.21.1** que añade fusiones de Pokémon a **Cobb
 ## Un solo jar para Cobblemon 1.7.3 (Cobbleverse) y 1.8.x
 
 Cobbleverse (el modpack más jugado) usa **Cobblemon 1.7.3**; Cobblemon normal va por la **1.8.2** (2026-10-11). Desde la
-0.1.1-beta hay **un solo jar** para las dos (`fabric.mod.json`: `"cobblemon": ">=1.7.3 <1.9"`), compilado contra 1.8.2.
+0.1.1-beta hay **un solo jar** para las dos (`META-INF/neoforge.mods.toml`: `versionRange = "[1.7.3,1.9)"`), compilado contra 1.8.2.
 Antes había una rama `cobblemon-1.7.3` y dos jars, y la app de CurseForge daba a la gente el que no era (instalaba el
 último subido): con Cobblemon 1.8.2 les salía "requires Cobblemon between 1.7.3 and 1.8" y pedían "actualizar".
 La rama queda solo como historia (worktree en `C:\MinecraftMods\Fusionmon\fusionmon-cobblemon-1.7.3`, sin usar).
@@ -33,7 +33,7 @@ Las diferencias entre versiones se resuelven al arrancar:
   interna `Modern`, que en 1.7.3 nunca se carga. **Todo lo que solo exista en una versión, aquí.**
 - `client/FusionmonMixinPlugin` (plugin de `fusionmon.client.mixins.json`): salta los mixins cuya clase objetivo no existe
   (`ClientboundSeatAssignmentPacketHandlerMixin` en 1.7.3; montar va bien sin él allí). Mira el `.class` sin cargarlo.
-- El POM de 1.7.3 no declara Fabric Language Kotlin, pero el jar de Cobblemon 1.7.3 lo exige igual: los jugadores lo tienen.
+- (Fabric) El POM de 1.7.3 no declaraba Fabric Language Kotlin, pero el jar de Cobblemon 1.7.3 lo exigía igual. En NeoForge, el equivalente es Kotlin for Forge: Cobblemon lo exige y los jugadores lo tienen.
 Comprobar una versión nueva de Cobblemon (probado así con 1.8.2 y 1.7.3, 2026-10-19), con sus jars en la caché de Gradle:
 `tools/cobblemon-mixin-check.ps1 -OldJar <viejo> -NewJar <nuevo>` (cada enganche de los mixins: método, firma, llamadas
 interceptadas y campos `@Shadow`) y `tools/cobblemon-api-check.ps1 -ModJar build/libs/<mod>.jar -CobblemonJar <jar>`
@@ -45,11 +45,35 @@ una instancia de CurseForge con 1.8.2 (`CF 1.8.2`) y en la de Cobbleverse.
   cambia de forma conserva también esos (aceptado: las fusiones no pierden movimientos).
 - 1.8.2 rehízo 36 modelos con otros nombres de huesos (`head_angle`, `head_ai`, `torso2/3`): ver `docs/visual-bugs.md`.
 
+## NeoForge (desde el 2026-10-24; antes Fabric)
+
+El mod se pasó de Fabric a NeoForge 21.1 (Minecraft 1.21.1) con **ModDevGradle** (`net.neoforged.moddev`, `build.gradle`).
+Equivalencias y trampas del cambio:
+- Arranque: `Fusionmon` y `FusionmonClient` son clases `@Mod` (la de cliente con `dist = Dist.CLIENT`) que reciben el bus
+  de eventos del mod; los eventos del juego van por `NeoForge.EVENT_BUS`. NeoForge construye los mods **en paralelo, en
+  varios hilos**: lo que se apunta en listas de Cobblemon (calculadora de stats, `AspectProvider`, eventos) va en
+  `FMLCommonSetupEvent.enqueueWork` (`Fusionmon.hookCobblemon`), en el hilo principal.
+- Registros cerrados: el inyector va en un `DeferredRegister` (`ModItems.FUSION_INJECTOR` es un `DeferredItem`: usar
+  `.get()`; sin él, `new ItemStack(...)` e `is(...)` son ambiguos). Los data attachments también (`FusionDiscovery`).
+- `src/client` se compila junto con `src/main` (ModDevGradle no separa los lados): el compilador ya no avisa si el
+  código común usa clases de cliente. No hacerlo (en un servidor dedicado no existen).
+- Rutas: `FMLPaths.CONFIGDIR`/`GAMEDIR` (antes `FabricLoader.getConfigDir`/`getGameDir`). Desarrollo:
+  `Fusionmon.isDevelopment()`.
+- Comandos: `RegisterCommandsEvent`; de cliente, `RegisterClientCommandsEvent` (fuente `CommandSourceStack`, mensajes
+  con `sendSuccess`). Recarga de recursos: `RegisterClientReloadListenersEvent`.
+- Mensajes: `RegisterPayloadHandlersEvent` (versión `ModNetworking.PROTOCOL`, `optional()` para que un lado sin
+  Fusionmon pueda conectarse) y `PacketDistributor`; los receptores ya corren en el hilo principal.
+- Partidas de la versión de Fabric: Cobblemon guarda equipo y PC en sus propios archivos y los datos de las fusiones van
+  en el `persistentData` de cada Pokémon, así que se conservan; el registro de fusiones descubiertas (attachment de
+  Fabric) no: se vuelve a llenar con las fusiones que el jugador tenga.
+- `neo_version` en `gradle.properties` (21.1.x): elegida sin poder comprobar qué pide Cobblemon 1.8.2; si al arrancar
+  dice que necesita una NeoForge más nueva, subirla.
+
 ## Dependencia de Cobblemon (no tocar sin motivo)
 
-- Maven oficial `https://maven.impactdev.net/repository/development/`, `modImplementation "com.cobblemon:fabric:${cobblemon_version}"` (`gradle.properties`: `1.8.2+1.21.1`); su POM trae Fabric Language Kotlin. Gradle descarga el jar (144 MB) con un solo hilo y puede tardar más de 10 min.
-- El plugin `org.jetbrains.kotlin.jvm` está aplicado **aunque no haya código Kotlin**: Loom solo remapea los metadatos Kotlin de Cobblemon si está; sin él, crash `ClassNotFoundException: net.minecraft.class_2960` en kotlin-reflect.
-- El sources jar de Cobblemon está vacío. Para conocer su API: `javap` (JDK 21 en `~/.jdks`) sobre el jar en `~/.gradle/caches/modules-2/files-2.1/com.cobblemon/fabric/<versión>/` (están 1.7.3, 1.8.1 y 1.8.2). **Comprobar qué hace un método por dentro (`javap -c`) antes de usarlo**, no fiarse del nombre.
+- Maven oficial `https://maven.impactdev.net/repository/development/`, `implementation "com.cobblemon:neoforge:${cobblemon_version}"` (`gradle.properties`: `1.8.2+1.21.1`); su POM debería traer Kotlin for Forge (repo `thedarkcolour.github.io/KotlinForForge`, en `build.gradle`). Gradle descarga el jar (144 MB) con un solo hilo y puede tardar más de 10 min.
+- Sin plugin de Kotlin: en Fabric hacía falta para que Loom remapease los metadatos Kotlin de Cobblemon, pero en NeoForge nada se remapea (nombres de Mojang en desarrollo y en el juego publicado). Para compilar contra `kotlin.Unit` hay un `compileOnly` de `kotlin-stdlib`.
+- El sources jar de Cobblemon está vacío. Para conocer su API: `javap` (JDK 21 en `~/.jdks`) sobre el jar en `~/.gradle/caches/modules-2/files-2.1/com.cobblemon/neoforge/<versión>/`. **Comprobar qué hace un método por dentro (`javap -c`) antes de usarlo**, no fiarse del nombre.
 
 ## Arquitectura (`src/main/java/com/arnau/fusionmon`)
 
@@ -73,12 +97,12 @@ una instancia de CurseForge con 1.8.2 (`CF 1.8.2`) y en la de Cobbleverse.
 - `fusion/FusionShowdown` + `mixin/BattleRegistryMixin` — antes de cada combate registra en Showdown la especie de fusión (`fusionmon<cabeza>x<cuerpo>`).
 - `mixin/PokemonMixin` — tipos, nombre visible, `showdownId()` y `getEvolutions()` de las fusiones.
 - `fusion/FusionEvolutions` — evoluciones de una fusión = las de cabeza y cuerpo guardados, envueltas en `FusionLevelUpEvolution` / `FusionItemEvolution` / `FusionTradeEvolution` (heredan de las de Cobblemon; id `fusionmon_<parte>_<id>`). Cobblemon las comprueba y muestra solo; al aceptar, `evolvePart` evoluciona la parte guardada (`FusionData.writePart`), y si es la cabeza también la especie visible. `mixin/ServerEvolutionControllerMixin` bloquea cualquier evolución no envuelta en una fusión.
-- `fusion/FusionDiscovery` — registro de fusiones **descubiertas** por jugador (data attachment de Fabric API `fusionmon:discovered_fusions`, persistente y `copyOnDeath`): claves `especie/forma>especie/forma` (el orden cuenta). Se apunta al **crear** la fusión (fusionar o invertir, en `FusionService`). En la pantalla de fusionar, una pareja sin descubrir (`FusionPreview.discovered`) sale en **silueta** negra (`ModelViewport.render(..., silhouette)`: color 0 en `drawProfilePokemon`), con "???" y stats ocultos; la animación la revela. Decisión del usuario (2026-10-09): silueta, solo al crearla, por jugador, stats ocultos. Se ven en el Fusion Album (`FusionAlbumScreen`).
+- `fusion/FusionDiscovery` — registro de fusiones **descubiertas** por jugador (data attachment de NeoForge `fusionmon:discovered_fusions`, `serialize` y `copyOnDeath`; los de Fabric se guardaban en otro sitio y no pasan a NeoForge: `registerExisting` vuelve a apuntar las del equipo y el PC): claves `especie/forma>especie/forma` (el orden cuenta). Se apunta al **crear** la fusión (fusionar o invertir, en `FusionService`). En la pantalla de fusionar, una pareja sin descubrir (`FusionPreview.discovered`) sale en **silueta** negra (`ModelViewport.render(..., silhouette)`: color 0 en `drawProfilePokemon`), con "???" y stats ocultos; la animación la revela. Decisión del usuario (2026-10-09): silueta, solo al crearla, por jugador, stats ocultos. Se ven en el Fusion Album (`FusionAlbumScreen`).
 - `fusion/FusionMoves` — dar movimientos a la fusión después de crearla (sin emitir paquetes; el llamador sincroniza: Pokémon completo o `MoveSet/BenchedMoves.update()`).
 - `fusion/FusionLevelUp` — `EXPERIENCE_GAINED_EVENT_POST`: Cobblemon solo enseña los movimientos por nivel de la cabeza; aquí se añaden los del cuerpo entre el nivel anterior y el nuevo.
-- `network/*` — payloads de Fabric (servidor↔cliente) de las pantallas de fusionar/separar.
+- `network/*` — payloads (servidor↔cliente) de las pantallas de fusionar/separar. `ModNetworking` registra los dos sentidos (en NeoForge todo en la parte común); lo que hace el cliente al recibirlos está en `client/ClientPayloads`, al que se llega **solo con lambdas** (no `ClientPayloads::metodo`), para que un servidor dedicado no cargue clases de cliente.
 - `command/FusionCommands` — comandos de prueba.
-- Cliente (`src/client/java/.../client`): `FusionmonClient` (receptores, recarga de recursos). Pantallas del inyector: `screen/FusionScreenBase` (lo común: título, fila de tres visores cabeza / fusión / cuerpo con `FusionScreenLayout`, ratón, cerrar = cancelar; **aquí irían sprites de interfaz**) + `FusionConfirmScreen` (fusionar o invertir: ⇄, barras de stats, naturaleza, habilidad) y `UnfuseConfirmScreen`. Se adaptan al alto (escala de interfaz 4 ≈ 480×270). Los datos llegan como `network/FusionPartView` (nombre, nivel, tipos, `RenderablePokemon`).
+- Cliente (`src/client/java/.../client`): `FusionmonClient` (`@Mod(dist = Dist.CLIENT)`: comandos de cliente, recarga de recursos; los receptores, en `ClientPayloads`). Pantallas del inyector: `screen/FusionScreenBase` (lo común: título, fila de tres visores cabeza / fusión / cuerpo con `FusionScreenLayout`, ratón, cerrar = cancelar; **aquí irían sprites de interfaz**) + `FusionConfirmScreen` (fusionar o invertir: ⇄, barras de stats, naturaleza, habilidad) y `UnfuseConfirmScreen`. Se adaptan al alto (escala de interfaz 4 ≈ 480×270). Los datos llegan como `network/FusionPartView` (nombre, nivel, tipos, `RenderablePokemon`).
 - `screen/FusionAnimationScreen` — animación al aceptar fusionar o invertir (solo cliente; el servidor ya ha fusionado): cabeza y cuerpo se acercan girando → destello y chispas → la fusión crece con rebote, destellos y "¡X y Y se han fusionado en Z!"; clic/tecla salta, otro clic cierra. Tiempos en constantes (`APPROACH`, `REVEAL`, `DONE`…); sonidos de Cobblemon (`FOSSIL_MACHINE_ASSEMBLE`, `EVOLUTION_UI`). Pinta con `ModelViewport.renderAt` (modelo libre, sin marco).
 - `fusion/FusionWorldAnimation` — **fusión animada en el mundo** (solo fusionar; decisión del usuario 2026-10-12, para los vídeos): si cabeza y cuerpo están fuera, a ≤ 16 bloques del jugador y libres (sin jinete, sin montar, sin combate, sin evolucionar), al aceptar el servidor contesta `FusionResultPayload(inWorld)` y el cliente no pone `FusionAnimationScreen` (que ahora espera esa respuesta: `await`/`onResult`; si la fusión falla no hay animación). El servidor la lleva tick a tick (~6 s, constantes `CHARGE`…`END`): espirales rojas (cabeza) y azules (cuerpo) de polvo, los dos se deslizan al punto medio, nube roja/azul/blanca donde se encogen (atributo `SCALE` de Minecraft, modificador `fusionmon:fusion_animation`) y se vuelven invisibles, destello → **ahí se fusiona** (`FusionSelection.fuseAfterAnimation`, que revalida y si no puede devuelve el inyector: `FusionInjectorItem.refundOne`), la fusión aparece en el punto medio pequeña y crece con rebote. Mientras dura: sin IA ni gravedad y sujetos cada tick (`hold`: si no, se empujan al solaparse); no se puede empezar otra fusión. Si se corta (uno vuelve a la Poké Ball, se desmaya, combate, el jugador se va, el servidor se cierra) se fusiona en ese momento. Polvo pequeño: el de Minecraft dura más cuanto más grande. Paso 3 (partículas de evolución de Cobblemon recoloreadas, `SpawnSnowstormParticlePacket`) descartado de momento: al usuario le gusta así.
 - `client/mixin/InfoWidgetMixin` — en el resumen de Cobblemon (pestaña Info), la fila Especie de una fusión dice "cabeza + cuerpo" y tiene tooltip; `SummaryTooltip`/`SummaryMixin` lo pintan al final porque Cobblemon adelanta sus paneles 1000 en Z.
@@ -117,7 +141,7 @@ una instancia de CurseForge con 1.8.2 (`CF 1.8.2`) y en la de Cobbleverse.
 - Al separar: cada parte recibe toda la EXP ganada como fusión y el % de PS de la fusión.
 - Evolución: el menú de Cobblemon ofrece las evoluciones de ambas partes; al elegir una, la otra sigue pendiente. Sin animación en el mundo (sonido + mensaje con el nombre de fusión). Las de intercambio sí (`FusionTradeEvolution`: el Cable Link y el intercambio buscan `TradeEvolution`); las de clic en bloque no se ofrecen a fusiones. Las evoluciones ya desbloqueadas (Cable Link, objetos: no pasivas) pasan a la fusión al fusionar y vuelven a su parte al separar o invertir (`FusionEvolutions.unlocked`/`carryIntoFusion`/`carryOutOfFusion`): si no, se perdían con el objeto gastado.
 - Objetivo: multijugador/servidores y publicar en CurseForge.
-- **Descubrir fusiones jugando** (decisión del usuario, 2026-10-09): la gracia es pensar combinaciones, capturar, probar y ver qué sale. Por eso `/fusionviewer` (visor de todas las fusiones), `/fusioninspect` y los ajustes finos de `/fusionvisual` solo existen en desarrollo (`FabricLoader.isDevelopmentEnvironment()`, en `FusionmonClient`); el jugador solo tiene `/fusionvisual graft|colors` (global, no se guarda) y los admins `/fusionmon info|unfuse` (`spawn` también es solo de desarrollo). Idea futura: un registro de fusiones **descubiertas** (como el Pokédex) en vez del visor completo.
+- **Descubrir fusiones jugando** (decisión del usuario, 2026-10-09): la gracia es pensar combinaciones, capturar, probar y ver qué sale. Por eso `/fusionviewer` (visor de todas las fusiones), `/fusioninspect` y los ajustes finos de `/fusionvisual` solo existen en desarrollo (`Fusionmon.isDevelopment()` = `!FMLEnvironment.production`, en `FusionmonClient`); el jugador solo tiene `/fusionvisual graft|colors` (global, no se guarda) y los admins `/fusionmon info|unfuse` (`spawn` también es solo de desarrollo). Idea futura: un registro de fusiones **descubiertas** (como el Pokédex) en vez del visor completo.
 
 ## Blindaje: no crashear con otros mods (2026-10-22, decisión del usuario)
 
@@ -154,7 +178,7 @@ su cabeza, el resumen sin añadido) y se avisa en el log.
 - `Pokemon.getPersistentData()` es `null` mientras el Pokémon se construye (Cobblemon calcula stats en el constructor): todo hook debe comprobar null.
 - `persistentData` solo llega al cliente en sincronizaciones completas del Pokémon; no hay paquete de actualización propio.
 - El `receiveEntry` de Showdown (detrás de `ShowdownService.sendRegistryEntry`) está roto en el JS; usar `sendRegistryData(map, "species")`.
-- Mixins sobre clases de Cobblemon: `@Mixin(value = ..., remap = false)`. Si el método es de Minecraft sobrescrito por Cobblemon (`getDimensions`, `onSyncedDataUpdated`, `renderWidget`), poner también su nombre intermediary (`method_18377`...): con `remap = false` no se traduce y en el juego publicado se llama así. Las llamadas cuya firma lleva clases de Minecraft se buscan solo por nombre (`Lcom/.../FormData;getHitbox`). Los errores de mixin no salen al compilar sino al cargar la clase (arrancar el juego).
+- Mixins sobre clases de Cobblemon: `@Mixin(value = ..., remap = false)`. Si el método es de Minecraft sobrescrito por Cobblemon (`getDimensions`, `onSyncedDataUpdated`, `renderWidget`), en NeoForge basta su nombre de Mojang: el juego publicado también usa esos nombres (en Fabric había que poner además el intermediary, `method_18377`...; el de `PokemonRendererMixin`, `scale`, no lo tenía y en el jar de Fabric seguramente no se aplicaba). Las llamadas cuya firma lleva clases de Minecraft se buscan solo por nombre (`Lcom/.../FormData;getHitbox`). Los errores de mixin no salen al compilar sino al cargar la clase (arrancar el juego).
 - Tamaño y montura: Cobblemon los lee de `form.baseScale`/`form.hitbox`/`form.riding` en muchos sitios (la forma es la de la cabeza); ver `FusionBodyForm`. El controlador de montura (`PokemonEntity.refreshRiding`: estilo y velocidades) se prepara **solo al crear la entidad** (constructor y `setPokemon`); en el cliente los aspects llegan después, así que salía la montura de la cabeza (sin montura, o cliente y servidor moviéndolo a velocidades distintas). `PokemonEntityMixin` lo vuelve a preparar cuando cambia el cuerpo (`onSyncedDataUpdated` de ASPECTS); `refreshRiding` baja a los jinetes. En el cliente, el `Pokemon` de una entidad no tiene persistentData ni aspects: los aspects están en `entity.getEntityData().get(PokemonEntity.Companion.getASPECTS())`.
 - Los paquetes de actualización de Cobblemon (`BenchedMovesUpdatePacket`, `MoveSet`...) llevan la colección **viva** y se serializan más tarde en el hilo de red: modificarla varias veces seguidas → `ConcurrentModificationException` y desconexión. Agrupar cambios con `doWithoutEmitting` y sincronizar una vez al final.
   Desde la 0.1.2, `mixin/BenchedMovesUpdatePacketMixin` hace que el de recordables lleve una copia: Mega Showdown, al
@@ -176,8 +200,8 @@ su cabeza, el resumen sin añadido) y se avisa en el log.
   `run/mods` y `run/server/mods`, y AllTheMons R5.0 apartado en `run/fusionmon/packs-desactivados/` (se declara
   incompatible con Mega Showdown).
 - Cobblemon comprueba evoluciones cada segundo (`PlayerPartyStore.onSecondPassed` → `getLockedEvolutions()`); `setSpecies`/`setForm` vacían las pendientes. El envío completo del Pokémon (`SetPartyPokemonPacket`) incluye las evoluciones pendientes.
-- `setForm` (también al evolucionar) llama a `updateMovesOnFormChange`, que borra los benched moves que la nueva especie no aprende; en fusiones se lo impide `PokemonMixin` con `@WrapOperation` (MixinExtras viene con Fabric Loader).
-- `runServer`: hay que forzar Java 21 (como `runClient`) y añadirle ICU4J 71.1 a mano, porque Loom quita la 73.2 del cliente y Showdown se queda sin ella (en un servidor real va dentro del jar de Cobblemon). En modo offline, `op` antes de haber entrado nunca da op a la cuenta de Mojang real con ese nombre: corregir `run/server/ops.json`.
+- `setForm` (también al evolucionar) llama a `updateMovesOnFormChange`, que borra los benched moves que la nueva especie no aprende; en fusiones se lo impide `PokemonMixin` con `@WrapOperation` (MixinExtras viene con NeoForge).
+- `runServer`: con Fabric había que añadirle ICU4J 71.1 a mano, porque Loom quitaba la 73.2 del cliente y Showdown se quedaba sin ella (en un servidor real va dentro del jar de Cobblemon). Con ModDevGradle no se ha probado: si sale `NoClassDefFoundError com/ibm/icu/...`, añadir `serverAdditionalRuntimeClasspath "com.ibm.icu:icu4j:71.1"` en `dependencies` (solo para `runServer`, no va al jar). En modo offline, `op` antes de haber entrado nunca da op a la cuenta de Mojang real con ese nombre: corregir `run/server/ops.json`.
 - Render: cada especie tiene en `assets/cobblemon/bedrock/pokemon/` `models` (huesos), `animations`, `posers` y `resolvers`. El resolver recorre sus variaciones **de la última a la primera** y, por propiedad (modelo, textura, capas), usa la primera cuyos aspects tenga el Pokémon. Los aspects se calculan solo en el servidor (`updateAspects`, que al cargar un Pokémon va después de leer `persistentData`).
 - Huesos: cada hueso es un `ModelPart` de Minecraft que Cobblemon convierte en `Bone` con un mixin (en Java hay que pasar por `(Object)` para hacer `instanceof`). La postura del `.geo` NO es la de reposo (p. ej. Charizard mira al cielo): para orientar algo hay que aplicar las animaciones (`setCurrentModel`, `setPoseToFirstSuitable`, `updatePartialTicks`, `applyAnimations`, como `drawProfilePokemon`). Muchas piezas duplicadas (bocas, párpados) solo las ocultan las animaciones.
 - Cubos girados del `.geo`: un `ModelPart` no los admite, así que Cobblemon (`TexturedModel`) mete cada uno en un hueso hijo llamado `%hueso%n` con ese giro. Al medir un hueso hay que contarlos como suyos y nunca son adornos (Groudon de AllTheMons tiene casi todos así). También crea hijos `internal_locator__*`.

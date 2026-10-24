@@ -1,0 +1,46 @@
+# Metadatos del mod para NeoForge (lo que era fabric.mod.json). La versión la pone Gradle al copiarlo (processResources)
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MPL-2.0"
+issueTrackerURL = "https://github.com/arnime99/fusionmon/issues"
+
+[[mods]]
+modId = "fusionmon"
+version = "${version}"
+displayName = "Fusionmon"
+authors = "Rupikola"
+displayURL = "https://github.com/arnime99/fusionmon"
+logoFile = "assets/fusionmon/icon.png"
+description = '''
+Fuse any two Cobblemon, Pokémon Infinite Fusion style: every pair gets its own model, name, types and stats. Discover fusions as you play, battle with them, ride them and evolve them.
+'''
+
+# Los mixins de cliente solo se aplican en el cliente: van en la lista "client" de su archivo
+[[mixins]]
+config = "fusionmon.mixins.json"
+
+[[mixins]]
+config = "fusionmon.client.mixins.json"
+
+[[dependencies.fusionmon]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fusionmon]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.21.2)"
+ordering = "NONE"
+side = "BOTH"
+
+# Un solo jar para Cobblemon 1.7.3 (Cobbleverse) y 1.8.x, como en Fabric (ver CobblemonCompat).
+# AFTER: Fusionmon se construye después de Cobblemon (envuelve su calculadora de stats al arrancar)
+[[dependencies.fusionmon]]
+modId = "cobblemon"
+type = "required"
+versionRange = "[1.7.3,1.9)"
+ordering = "AFTER"
+side = "BOTH"
