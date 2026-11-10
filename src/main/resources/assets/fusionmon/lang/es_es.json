@@ -200,5 +200,10 @@
   "advancement.fusionmon.discover_100.description": "Descubre 100 fusiones distintas en tu Fusion Album",
   "message.fusionmon.blocked": "Esto no se puede hacer aquí.",
   "jade.fusionmon.fusion_parts": "Fusión: %s + %s",
-  "config.jade.plugin_fusionmon.fusion_parts": "Partes de la fusión"
+  "config.jade.plugin_fusionmon.fusion_parts": "Partes de la fusión",
+  "item.fusionmon.fusion_album": "Fusion Album",
+  "gui.fusionmon.album.cry": "Escuchar grito",
+  "gui.fusionmon.album.total": "Total %s",
+  "gui.fusionmon.album.hint": "Arrastra para girar · rueda para acercar",
+  "item.fusionmon.fusion_album.desc": "Úsalo para ver las fusiones que has descubierto"
 }

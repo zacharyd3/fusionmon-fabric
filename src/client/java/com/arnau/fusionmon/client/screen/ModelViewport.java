@@ -78,10 +78,20 @@ final class ModelViewport {
      */
     void render(GuiGraphics graphics, RenderablePokemon model, FloatingState state, String fitExtra, int x, int y,
                 int box, float partialTick, Runnable before, Runnable after, boolean silhouette) {
-        state.setCurrentAspects(model.getAspects());
         graphics.fill(x - 1, y - 1, x + box + 1, y + box + 1, 0xFF555555);
         graphics.fill(x, y, x + box, y + box, 0xFF1E1E1E);
+        renderIn(graphics, model, state, fitExtra, x, y, box, box, partialTick, before, after, silhouette);
+    }
+
+    /**
+     * Pinta el modelo en un rectángulo (x, y, ancho w, alto h) sin fondo ni marco: lo que haya debajo se ve (el
+     * retrato del Fusion Album, con su plataforma). El modelo cabe en el lado más corto.
+     */
+    void renderIn(GuiGraphics graphics, RenderablePokemon model, FloatingState state, String fitExtra, int x, int y,
+                  int w, int h, float partialTick, Runnable before, Runnable after, boolean silhouette) {
+        state.setCurrentAspects(model.getAspects());
         measure(model, state, fitExtra);
+        int box = Math.min(w, h);
 
         Quaternionf rotation = cameraRotation();
         // Píxeles por bloque para que el modelo quepa; drawProfilePokemon escala además x20 (el "20F" de abajo)
@@ -90,10 +100,10 @@ final class ModelViewport {
         Vector3f center = rotation.transform(new Vector3f(fitCenter));
 
         // Lo que se salga de la caja no se pinta
-        graphics.enableScissor(x, y, x + box, y + box);
+        graphics.enableScissor(x, y, x + w, y + h);
         PoseStack pose = graphics.pose();
         pose.pushPose();
-        pose.translate(x + box / 2.0 + panX, y + box / 2.0 + panY, 0);
+        pose.translate(x + w / 2.0 + panX, y + h / 2.0 + panY, 0);
         float scale = pixels / PROFILE_SCALE;
         pose.scale(scale, scale, scale);
         pose.translate(-center.x * PROFILE_SCALE, -center.y * PROFILE_SCALE, -center.z * PROFILE_SCALE);

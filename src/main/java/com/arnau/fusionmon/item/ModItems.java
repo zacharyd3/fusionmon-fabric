@@ -19,6 +19,10 @@ public class ModItems {
     public static final DeferredItem<FusionInjectorItem> FUSION_INJECTOR =
             ITEMS.registerItem("fusion_injector", FusionInjectorItem::new, new Item.Properties());
 
+    /** El Fusion Album (las fusiones descubiertas): una Pokédex rodeada de inyectores. Uno basta, no se gasta. */
+    public static final DeferredItem<FusionAlbumItem> FUSION_ALBUM =
+            ITEMS.registerItem("fusion_album", FusionAlbumItem::new, new Item.Properties().stacksTo(1));
+
     public static void initialize(IEventBus modBus) {
         ITEMS.register(modBus);
         modBus.addListener(ModItems::addToCreativeTabs);
@@ -27,6 +31,9 @@ public class ModItems {
     private static void addToCreativeTabs(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(FUSION_INJECTOR.get());
+        }
+        if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
+            event.accept(FUSION_ALBUM.get());
         }
     }
 }

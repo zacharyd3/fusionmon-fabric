@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "III",
+    "IPI",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "item": "fusionmon:fusion_injector"
+    },
+    "P": {
+      "tag": "cobblemon:pokedex"
+    }
+  },
+  "result": {
+    "id": "fusionmon:fusion_album",
+    "count": 1
+  }
+}
