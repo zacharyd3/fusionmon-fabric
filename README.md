@@ -26,7 +26,7 @@ Every pair is built on the fly, so any two species can be fused: their own model
   `/pokespawn pikachu fusion_body=charizard`, raid bosses, trainer teams…
 - **Integrations** (all optional, see `docs/integrations.md`): fusion raid bosses and injector rewards for Cobblemon Raid
   Dens, fusions in Radical Cobblemon Trainers teams, `FusionmonEvents` for KubeJS, a ready-made FTB Quests chapter, and a
-  "Fusion: head + body" line in Jade.
+  "Fusion: head + body" line in Jade, and four leveling Cobblemon relics for Relics (fusion EXP, wild fusions, shinies, catch rate).
 
 ## Crafting
 

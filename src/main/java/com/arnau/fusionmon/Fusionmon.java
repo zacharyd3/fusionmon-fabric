@@ -2,6 +2,7 @@ package com.arnau.fusionmon;
 
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.arnau.fusionmon.advancement.FusionTrigger;
 import com.arnau.fusionmon.command.FusionCommands;
 import com.arnau.fusionmon.compat.raiddens.RaidDensCompat;
+import com.arnau.fusionmon.compat.relics.RelicsCompat;
 import com.arnau.fusionmon.fusion.FusionAspects;
 import com.arnau.fusionmon.fusion.FusionDiscovery;
 import com.arnau.fusionmon.fusion.FusionLevelUp;
@@ -59,6 +61,10 @@ public class Fusionmon {
 		FusionTrigger.initialize(modBus);
 		// Con Cobblemon Raid Dens: datapack incluido con jefes de incursión fusionados e inyectores en los premios
 		RaidDensCompat.initialize(modBus);
+		// Con Relics: cuatro reliquias para Cobblemon (las clases heredan de Relics: solo se tocan si está instalado)
+		if (ModList.get().isLoaded(RelicsCompat.MOD_ID)) {
+			RelicsCompat.initialize(modBus);
+		}
 		// Fusión animada en el mundo cuando los dos Pokémon están fuera (avanza en cada tick del servidor)
 		FusionWorldAnimation.initialize();
 		// Lo que se engancha a Cobblemon, en el hilo principal y uno detrás de otro: NeoForge construye los mods a la vez
@@ -83,6 +89,9 @@ public class Fusionmon {
 		FusionRequest.registerProperty();
 		// Fusiones conseguidas sin crearlas (capturadas, premios, regaladas): Fusion Album, eventos y logros
 		FusionObtained.register();
+		if (ModList.get().isLoaded(RelicsCompat.MOD_ID)) {
+			RelicsCompat.hookCobblemon();
+		}
 	}
 
 	/**

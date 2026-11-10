@@ -86,6 +86,9 @@ dependencies {
 	compileOnly "maven.modrinth:jade:${project.jade_version}"
 	compileOnly "maven.modrinth:kubejs:${project.kubejs_version}"
 	compileOnly "maven.modrinth:rhino:${project.rhino_version}"
+	// Relics (las reliquias de compat/relics heredan de su WearableRelicItem, que es un objeto de Curios)
+	compileOnly "maven.modrinth:relics-mod:${project.relics_version}"
+	compileOnly "maven.modrinth:curios:${project.curios_version}"
 }
 
 processResources {

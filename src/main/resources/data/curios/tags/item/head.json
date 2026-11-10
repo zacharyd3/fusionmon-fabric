@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "fusionmon:prism_monocle",
+      "required": false
+    }
+  ]
+}
