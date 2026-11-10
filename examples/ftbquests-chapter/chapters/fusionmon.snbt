@@ -1,0 +1,111 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "fusionmon"
+	group: ""
+	icon: { id: "fusionmon:fusion_injector" }
+	id: "F7A0A0DFD425D8A4"
+	order_index: 0
+	quest_links: [ ]
+	quests: [
+		{
+			icon: { id: "fusionmon:fusion_injector" }
+			id: "62844DD744FCDD6F"
+			rewards: [
+				{ count: 5, id: "A9582A4E1C1CB2A9", item: { count: 1, id: "cobblemon:poke_ball" }, type: "item" }
+			]
+			tasks: [{ id: "DA9F588512A41374", item: { count: 1, id: "fusionmon:fusion_injector" }, type: "item" }]
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			dependencies: ["62844DD744FCDD6F"]
+			icon: { id: "fusionmon:fusion_injector" }
+			id: "B680DA1EB8198BA2"
+			rewards: [
+				{ count: 2, id: "2405E480EC71CD72", item: { count: 1, id: "fusionmon:fusion_injector" }, type: "item" }
+			]
+			tasks: [{ advancement: "fusionmon:first_fusion", criterion: "", id: "D5141BBCB78B79C1", type: "advancement" }]
+			x: 2.0d
+			y: 0.0d
+		}
+		{
+			dependencies: ["B680DA1EB8198BA2"]
+			icon: { id: "cobblemon:great_ball" }
+			id: "4E6E71DDDACD28C7"
+			rewards: [
+				{ count: 1, id: "DCEF018DC1002712", item: { count: 1, id: "fusionmon:fusion_injector" }, type: "item" }
+			]
+			tasks: [{ advancement: "fusionmon:reverse", criterion: "", id: "BBAB9072E2206C39", type: "advancement" }]
+			x: 4.0d
+			y: -1.0d
+		}
+		{
+			dependencies: ["B680DA1EB8198BA2"]
+			icon: { id: "cobblemon:poke_ball" }
+			id: "C98F5A8D9A999977"
+			rewards: [
+				{ count: 1, id: "65E7376000342075", item: { count: 1, id: "fusionmon:fusion_injector" }, type: "item" }
+			]
+			tasks: [{ advancement: "fusionmon:unfuse", criterion: "", id: "C9484BD07024ED6F", type: "advancement" }]
+			x: 4.0d
+			y: 1.0d
+		}
+		{
+			dependencies: ["B680DA1EB8198BA2"]
+			icon: { id: "cobblemon:ultra_ball" }
+			id: "BAA35396A071D830"
+			rewards: [
+				{ count: 3, id: "9470B3DDA0DCEC1A", item: { count: 1, id: "fusionmon:fusion_injector" }, type: "item" }
+			]
+			tasks: [{ advancement: "fusionmon:obtain_fusion", criterion: "", id: "9D61A32282499D1E", type: "advancement" }]
+			x: 2.0d
+			y: 2.0d
+		}
+		{
+			dependencies: ["B680DA1EB8198BA2"]
+			icon: { id: "cobblemon:poke_ball" }
+			id: "AA3F315667099A50"
+			rewards: [
+				{ count: 3, id: "0D8AB6197E5C498D", item: { count: 1, id: "cobblemon:rare_candy" }, type: "item" }
+			]
+			tasks: [{ advancement: "fusionmon:discover_10", criterion: "", id: "14A91D5EB533AA98", type: "advancement" }]
+			x: 6.0d
+			y: 0.0d
+		}
+		{
+			dependencies: ["AA3F315667099A50"]
+			icon: { id: "cobblemon:great_ball" }
+			id: "4D318D1D02EC5314"
+			rewards: [
+				{ count: 4, id: "5C4D903468FBB910", item: { count: 1, id: "cobblemon:exp_candy_l" }, type: "item" }
+				{ count: 4, id: "790180F1930362CE", item: { count: 1, id: "fusionmon:fusion_injector" }, type: "item" }
+			]
+			tasks: [{ advancement: "fusionmon:discover_25", criterion: "", id: "0A864E83F3C7BFCA", type: "advancement" }]
+			x: 8.0d
+			y: 0.0d
+		}
+		{
+			dependencies: ["4D318D1D02EC5314"]
+			icon: { id: "cobblemon:ultra_ball" }
+			id: "AF88BF62991811E3"
+			rewards: [
+				{ count: 1, id: "0A7F03F8E7DF0128", item: { count: 1, id: "cobblemon:ability_capsule" }, type: "item" }
+			]
+			tasks: [{ advancement: "fusionmon:discover_50", criterion: "", id: "D09C6563AA5F8FC9", type: "advancement" }]
+			x: 10.0d
+			y: 0.0d
+		}
+		{
+			dependencies: ["AF88BF62991811E3"]
+			icon: { id: "cobblemon:master_ball" }
+			id: "EF523927565F9F8B"
+			rewards: [
+				{ count: 1, id: "F80D59FD999365F6", item: { count: 1, id: "cobblemon:master_ball" }, type: "item" }
+			]
+			tasks: [{ advancement: "fusionmon:discover_100", criterion: "", id: "9B4AB32459D950F8", type: "advancement" }]
+			x: 12.0d
+			y: 0.0d
+		}
+	]
+}

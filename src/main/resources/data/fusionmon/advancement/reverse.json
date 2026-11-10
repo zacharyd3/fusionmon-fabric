@@ -1,0 +1,26 @@
+{
+  "parent": "fusionmon:first_fusion",
+  "display": {
+    "icon": {
+      "id": "cobblemon:great_ball"
+    },
+    "title": {
+      "translate": "advancement.fusionmon.reverse.title"
+    },
+    "description": {
+      "translate": "advancement.fusionmon.reverse.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "reverse": {
+      "trigger": "fusionmon:fusion",
+      "conditions": {
+        "action": "reverse"
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "display": {
+    "icon": {
+      "id": "fusionmon:fusion_injector"
+    },
+    "title": {
+      "translate": "advancement.fusionmon.root.title"
+    },
+    "description": {
+      "translate": "advancement.fusionmon.root.description"
+    },
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false,
+    "background": "minecraft:textures/block/purple_concrete.png"
+  },
+  "criteria": {
+    "has_injector": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "fusionmon:fusion_injector"
+          }
+        ]
+      }
+    },
+    "any_fusion": {
+      "trigger": "fusionmon:fusion",
+      "conditions": {}
+    }
+  },
+  "requirements": [
+    [
+      "has_injector",
+      "any_fusion"
+    ]
+  ]
+}

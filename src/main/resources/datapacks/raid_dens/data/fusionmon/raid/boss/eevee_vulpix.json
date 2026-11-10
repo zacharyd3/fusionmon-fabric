@@ -1,0 +1,20 @@
+{
+    "pokemon": {
+        "species": "eevee",
+        "moves": [
+            "quickattack",
+            "ember",
+            "bite",
+            "tailwhip"
+        ],
+        "custom_properties": [
+            {
+                "name": "fusion_body",
+                "value": "vulpix"
+            }
+        ]
+    },
+    "raid_tier": "TIER_TWO",
+    "raid_type": "NORMAL",
+    "weight": 20.0
+}

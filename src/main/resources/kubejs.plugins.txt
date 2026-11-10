@@ -1,0 +1,1 @@
+com.arnau.fusionmon.compat.kubejs.FusionmonKubeJSPlugin

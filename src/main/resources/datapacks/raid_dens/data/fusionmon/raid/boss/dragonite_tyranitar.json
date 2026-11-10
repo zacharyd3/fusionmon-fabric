@@ -1,0 +1,20 @@
+{
+    "pokemon": {
+        "species": "dragonite",
+        "moves": [
+            "outrage",
+            "crunch",
+            "stoneedge",
+            "dragondance"
+        ],
+        "custom_properties": [
+            {
+                "name": "fusion_body",
+                "value": "tyranitar"
+            }
+        ]
+    },
+    "raid_tier": "TIER_FIVE",
+    "raid_type": "DRAGON",
+    "weight": 20.0
+}

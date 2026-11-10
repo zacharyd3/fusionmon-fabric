@@ -1,0 +1,20 @@
+{
+    "pokemon": {
+        "species": "haunter",
+        "moves": [
+            "shadowball",
+            "psybeam",
+            "hypnosis",
+            "confuseray"
+        ],
+        "custom_properties": [
+            {
+                "name": "fusion_body",
+                "value": "kadabra"
+            }
+        ]
+    },
+    "raid_tier": "TIER_FOUR",
+    "raid_type": "GHOST",
+    "weight": 20.0
+}

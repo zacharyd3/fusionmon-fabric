@@ -167,6 +167,45 @@ Equivalencias y trampas del cambio:
   instalación en `worldfirst/README.md`):
   tokens por servidor (solo su hash), límites por hora, banear/rotar, página con la clasificación. **El servicio no está
   desplegado** (ni la imagen Docker construida: en la sesión en la nube no había daemon de Docker).
+- **Integraciones con All the Mons** (2026-11-10, pedidas por el usuario; su modpack usa **Cobblemon 1.7.3**: todo lo
+  usado de Cobblemon está comprobado con `javap` en los jars de 1.7.3 y 1.8.2). Guía para modpacks (inglés):
+  `docs/integrations.md`. **Compila, sin probar en el juego.**
+  - `api/FusionmonEvent` — eventos públicos en `NeoForge.EVENT_BUS` (servidor): `BeforeFuse`/`BeforeUnfuse`
+    (cancelables, con mensaje; se lanzan en `FusionSelection` después de validar y **antes de gastar el inyector**),
+    `Fused`, `Unfused`, `Discovered` (pareja nueva en el Fusion Album, con el total), `Obtained` (fusión que no ha creado
+    él). Todo pasa por `fusion/FusionProgress` (Fusion Album + World First + eventos + logros; escuchadores en
+    try/catch). `fusion/FusionObtained`: `POKEMON_GAINED` de Cobblemon → si es fusión, `obtained`; mientras
+    `FusionService` fusiona/separa/invierte no cuenta (`whileFusing`).
+  - `advancement/FusionTrigger` — criterio `fusionmon:fusion` (`action` fuse/reverse/unfuse/discover/obtain,
+    `min_discovered`, `head`, `body`) y logros en `data/fusionmon/advancement` (root, first_fusion, reverse, unfuse,
+    obtain_fusion, discover_10/25/50/100).
+  - `fusion/FusionRequest` — **`fusion_body=<especie>[/forma]|random`** convierte cualquier Pokémon creado por Cobblemon
+    en fusión (él es la cabeza; el cuerpo con su nivel, IVs, EVs y shiny). Tres formas: propiedad de Cobblemon
+    (`FusionBodyProperty`, registrada en `hookCobblemon`: `/pokespawn pikachu fusion_body=charizard`), aspect
+    `fusion_body=x` en las propiedades o en `setForcedAspects` (así lo hace **RCT**: crea el equipo con setters, sin
+    propiedades) y característica de especie de texto (Raid Dens convierte `custom_properties` en `StringSpeciesFeature`,
+    que con un nombre desconocido no hace nada). Cobblemon crea con `new Pokemon()` → `apply` → `initialize()`: en
+    `apply` solo se apunta (`fusionmon_pending_body` en persistentData, se quita antes de fusionar) y se fusiona al
+    terminar `initialize` (`mixin/PokemonRequestMixin`) o al terminar `apply` si ya tenía movimientos
+    (`mixin/PokemonPropertiesMixin`). Solo en el hilo del servidor. `FusionAspects` añade también el aspect
+    `fusion_body=<cuerpo>` a las fusiones (para que `matches` encaje) y da los aspects de fusión a unas propiedades que
+    piden una.
+  - `compat/raiddens/RaidDensCompat` — con `cobblemonraiddens`, datapack incluido `datapacks/raid_dens`
+    (`AddPackFindersEvent`, `PackSource.BUILT_IN`: activo por defecto, se puede desactivar): 14 jefes fusionados
+    (`data/fusionmon/raid/boss`, niveles 1–6; movimientos comprobados contra los aprendizajes de 1.7.3) y modificador de
+    botín `neoforge:add_table` en `cobblemonraiddens:raid/tier/tier_*` (60 % de 1–3 inyectores). Raid Dens lee jefes de
+    `data/*/raid/boss` de todos los namespaces y crea jefe y premio con `PokemonProperties.create()`.
+  - `compat/kubejs` — plugin de KubeJS (`kubejs.plugins.txt`): grupo `FusionmonEvents` (`beforeFuse`, `beforeUnfuse`
+    con `hasResult` + `applyCancel`, `fused`, `unfused`, `discovered`, `obtained`, en `ScriptType.SERVER`) y el objeto
+    `Fusionmon` (`FusionmonKubeUtils`).
+  - `client/compat/jade/FusionmonJadePlugin` — `@WailaPlugin`: línea "Fusión: cabeza + cuerpo" al mirar una fusión
+    (cuerpo de los aspects de la entidad, solo cliente).
+  - FTB Quests: sin código; capítulo de ejemplo en `examples/ftbquests-chapter` con tareas de tipo advancement. FTB
+    Quests 2101 guarda los textos en `quests/lang/en_us.snbt` (claves `quest.<ID>.title`, `quest_subtitle`,
+    `quest_desc`): se dan como líneas para pegar, no como archivo (pisaría el del modpack).
+  - Compilar contra Jade/KubeJS/Rhino: `compileOnly` del Maven de Modrinth (`build.gradle`, versiones en
+    `gradle.properties`); el entorno en la nube deja pasar `api.modrinth.com`, `cdn.modrinth.com`, `maven.latvian.dev` y
+    `maven.ftb.dev`.
 - `fusion/FusionBodyForm` (común) — forma del cuerpo en servidor (persistentData) y cliente (aspects de la entidad). La fusión tiene **tamaño y montura del cuerpo**: `PokemonEntityMixin` (escala y caja de colisión en `getDimensions`, recalculada al cambiar los aspects; montura en `getSeats`/`getRideProp`/`refreshRiding`), `PokemonMixin` (`getRiding` y estadísticas de montura), `RidingControllerMixin`; cliente: `PokemonRendererMixin` (escala al pintar), `ClientboundSeatAssignmentPacketHandlerMixin`, `StatWidgetMixin`. **Solo se monta si el cuerpo se puede montar** (sin plan B con la montura de la cabeza: con el modelo del cuerpo iba desacoplada; decisión del usuario, 2026-10-10). **Hombro** (2026-10-21, aviso del servidor CobbleFusion): también manda el cuerpo — subirse (`PokemonEntityMixin`, `canSitOnShoulder`/`method_6626`), seguir arriba (`PlayerPartyStoreMixin`, `validateShoulder`) y escala/caja al pintarlo (`client/mixin/PokemonOnShoulderRendererMixin`, forma de `FusionBodyForm.fromAspects`); los efectos de hombro siguen siendo los de la cabeza. Cobblemon pinta el hombro dos veces, la primera sin `model.currentState` (el graft no actúa y salía la cabeza original del cuerpo): en fusiones esa pasada se salta. Ojo: esa clase tiene varios `render`, y con solo el nombre Mixin coge el primero (crash al arrancar): `"render*"`.
 - `screen/FusionAlbumScreen` — **Fusion Album del jugador**: sus fusiones descubiertas (lista con buscador, de la más reciente a la más antigua, contador; la elegida en 3D con nombre, tipos, partes y stats). Se abre con **Shift + clic derecho con el inyector** o **`/fusionalbum`** (comando del servidor, para todos): `FusionDiscovery.open` → `OpenFusion AlbumPayload` con las claves. Las fusiones que el jugador ya tenía antes del registro se apuntan una vez al entrar (`registerExisting`).
 - `screen/FusionDexScreen` — **visor de todas las fusiones** (`/fusionviewer`, comando de cliente, solo en desarrollo; la pantalla se abre con `client.tell` porque al acabar un comando se cierra el chat): cabeza y cuerpo entre las especies con modelo (buscar por nombre/número, ←/→ cuerpo, ↑/↓ cabeza, R azar, S intercambiar, C cámara; arrastrar izq. gira, der. mueve, rueda zoom), nombre/tipos/stats y botones de shiny, sexo y modos de `/fusionvisual`. Pinta un `RenderablePokemon` con los aspects de fusión (como la vista previa): pasa por el mismo graft que el juego. **Herramienta principal para probar visuales.** Renders para portadas (2026-10-19): **V** fusión / solo cabeza / solo cuerpo, **B** silueta negra, **P** guarda lo que se ve como PNG 2048×2048 con fondo transparente en `run/fusionmon/renders` (`ModelViewport.export`: pinta en un `TextureTarget` transparente con su propia proyección, durante el render de la pantalla porque necesita la matriz de la interfaz; `drawProfilePokemon` vacía él mismo el búfer de Minecraft). En la rama 1.7.3 el `draw` de `ModelViewport` lleva la firma de 1.7.3 (conflicto al hacer merge). `FusionTextures` guarda como mucho 256 texturas generadas (LRU) para poder recorrer cientos de fusiones.

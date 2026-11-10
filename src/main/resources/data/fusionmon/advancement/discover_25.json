@@ -1,0 +1,26 @@
+{
+  "parent": "fusionmon:discover_10",
+  "display": {
+    "icon": {
+      "id": "cobblemon:great_ball"
+    },
+    "title": {
+      "translate": "advancement.fusionmon.discover_25.title"
+    },
+    "description": {
+      "translate": "advancement.fusionmon.discover_25.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "d": {
+      "trigger": "fusionmon:fusion",
+      "conditions": {
+        "min_discovered": 25
+      }
+    }
+  }
+}

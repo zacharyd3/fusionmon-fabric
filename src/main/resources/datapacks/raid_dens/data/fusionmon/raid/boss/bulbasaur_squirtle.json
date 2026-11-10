@@ -1,0 +1,20 @@
+{
+    "pokemon": {
+        "species": "bulbasaur",
+        "moves": [
+            "vinewhip",
+            "watergun",
+            "tackle",
+            "growl"
+        ],
+        "custom_properties": [
+            {
+                "name": "fusion_body",
+                "value": "squirtle"
+            }
+        ]
+    },
+    "raid_tier": "TIER_ONE",
+    "raid_type": "GRASS",
+    "weight": 20.0
+}

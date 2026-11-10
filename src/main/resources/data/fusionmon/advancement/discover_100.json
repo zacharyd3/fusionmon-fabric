@@ -1,0 +1,26 @@
+{
+  "parent": "fusionmon:discover_50",
+  "display": {
+    "icon": {
+      "id": "cobblemon:master_ball"
+    },
+    "title": {
+      "translate": "advancement.fusionmon.discover_100.title"
+    },
+    "description": {
+      "translate": "advancement.fusionmon.discover_100.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "d": {
+      "trigger": "fusionmon:fusion",
+      "conditions": {
+        "min_discovered": 100
+      }
+    }
+  }
+}

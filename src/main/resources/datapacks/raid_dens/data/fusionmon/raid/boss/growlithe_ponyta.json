@@ -1,0 +1,20 @@
+{
+    "pokemon": {
+        "species": "growlithe",
+        "moves": [
+            "flamewheel",
+            "bite",
+            "stomp",
+            "takedown"
+        ],
+        "custom_properties": [
+            {
+                "name": "fusion_body",
+                "value": "ponyta"
+            }
+        ]
+    },
+    "raid_tier": "TIER_THREE",
+    "raid_type": "FIRE",
+    "weight": 20.0
+}
