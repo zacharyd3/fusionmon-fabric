@@ -200,6 +200,17 @@ Equivalencias y trampas del cambio:
     `Fusionmon` (`FusionmonKubeUtils`).
   - `client/compat/jade/FusionmonJadePlugin` — `@WailaPlugin`: línea "Fusión: cabeza + cuerpo" al mirar una fusión
     (cuerpo de los aspects de la entidad, solo cliente).
+  - `compat/relics` (2026-11-10, el usuario eligió Relics sobre Artifacts): con `relics` instalado, cuatro reliquias
+    (`PokeRelicItem` hereda de `WearableRelicItem`; `RelicsCompat` registra los objetos y engancha Cobblemon, solo si
+    `ModList` tiene Relics): **Amuleto de Corazones Gemelos** (collar, +EXP a fusiones, `EXPERIENCE_GAINED_EVENT_PRE`),
+    **Brújula de Fusión** (amuleto, apariciones salvajes fusionadas con `FusionRequest.fuseWith`, `ENTITY_SPAWN`),
+    **Monóculo Prisma** (cabeza, tirada extra de shiny al aparecer cerca: `(mult-1)/shinyRate`; en 1.7.3 la tirada de
+    Cobblemon no siempre sabe qué jugador hay cerca) y **Guante Trampa** (manos, `POKEMON_CATCH_RATE`). Una habilidad
+    cada una, con rango 3, fuentes de experiencia, estrellas de investigación y botín de Relics. Relics busca textos e
+    imágenes por la ruta del objeto en su namespace: `relics.description.<objeto>...` (en nuestro lang) e imágenes en
+    `assets/relics/textures/abilities/<objeto>/<habilidad>.png` (22×31, dentro de nuestro jar). Huecos de Curios en
+    `data/curios/tags/item` con `required: false`. Fuente descompilada con Vineflower para leer su API (cambia mucho
+    entre versiones: todo en try/catch de `LinkageError`). **Compila, sin probar en el juego.**
   - FTB Quests: sin código; capítulo de ejemplo en `examples/ftbquests-chapter` con tareas de tipo advancement. FTB
     Quests 2101 guarda los textos en `quests/lang/en_us.snbt` (claves `quest.<ID>.title`, `quest_subtitle`,
     `quest_desc`): se dan como líneas para pegar, no como archivo (pisaría el del modpack).

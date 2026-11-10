@@ -169,6 +169,25 @@ public final class FusionRequest {
     }
 
     /**
+     * Convierte ya en fusión un Pokémon que no es de nadie (él es la cabeza) con un cuerpo de esa forma, como una
+     * petición: mismo nivel, IVs, EVs y shiny. Para fusiones salvajes (la Brújula de Fusión de compat/relics). Solo en
+     * el hilo del servidor; false si no se ha podido.
+     */
+    public static boolean fuseWith(Pokemon head, FormData bodyForm) {
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null || !server.isSameThread() || FusionData.isFusion(head)) {
+            return false;
+        }
+        try {
+            FusionService.makeFusion(server.registryAccess(), head, bodyFor(head, bodyForm), false, false);
+            return true;
+        } catch (RuntimeException e) {
+            FusionSafety.failed("crear una fusión salvaje", e);
+            return false;
+        }
+    }
+
+    /**
      * El cuerpo de una fusión pedida: mismo nivel, IVs, EVs y shiny que la cabeza. Así la fusión sale con lo que se
      * pidió (un jefe de incursión de nivel 70 con 6 IVs perfectos sigue siéndolo), porque nivel, IVs y EVs son la media.
      */

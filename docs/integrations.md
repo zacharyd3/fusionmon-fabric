@@ -11,6 +11,7 @@ the other mod is installed. Tested against the versions in **All the Mons** (Cob
 | KubeJS | `FusionmonEvents.*` script events and a `Fusionmon` helper object |
 | FTB Quests | Fusionmon advancements as quest tasks + a ready-made chapter |
 | Jade | "Fusion: Pikachu + Charizard" when you look at a fusion |
+| Relics | Four Cobblemon relics that level up: EXP for fusions, wild fusions, shinies, catch rate |
 
 ## `fusion_body`: making a fusion from anywhere
 
@@ -140,6 +141,20 @@ Conditions (all optional): `action` (`fuse`, `reverse`, `unfuse`, `discover`, `o
 
 FTB Quests has "Advancement" tasks, so quests can use these directly. A complete chapter is in
 [`examples/ftbquests-chapter`](../examples/ftbquests-chapter) (install steps in its README).
+
+## Relics
+
+With Relics installed, Fusionmon adds four relics. Like Relics' own, they're found in chests, worn in Curios slots,
+unlocked and researched in the relic's description screen, and level up as you play:
+
+| Relic | Slot | Ability | Rank 3 bonus | Levels up from |
+|---|---|---|---|---|
+| Twin Heart Amulet | necklace | Fusions in your party gain +10–20% EXP (up to +75%) | Non-fusions get half the bonus | Fusions gaining EXP |
+| Fusion Compass | charm | Wild Pokémon near you have 1–2% (up to 8%) chance to spawn as a fusion with a random non-legendary species | The body shares a type with the spawn | Spawns near you, wild fusions created |
+| Prism Monocle | head | Wild Pokémon near you are 1.5–2× (up to 5×) as likely to be shiny | Wild fusions twice as likely again | Spawns near you, shinies revealed |
+| Snare Glove | hands | Your Poké Balls get +10–15% (up to +50%) catch rate | Doubled against fusions | Captures (more for fusions) |
+
+"Near you" means within 64 blocks. Values can be tuned in `config/fusionmon/relics/`, like any Relics config.
 
 ## Jade
 
