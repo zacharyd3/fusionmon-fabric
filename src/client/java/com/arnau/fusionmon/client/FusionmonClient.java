@@ -3,8 +3,11 @@ package com.arnau.fusionmon.client;
 import com.arnau.fusionmon.Fusionmon;
 import com.arnau.fusionmon.MixinHealth;
 import com.arnau.fusionmon.client.model.FusionGraft;
+import com.arnau.fusionmon.client.model.atlas.SkeletonAtlas;
+import com.arnau.fusionmon.client.model.atlas.SkeletonOverrides;
 import com.arnau.fusionmon.client.screen.FusionDexScreen;
 import com.arnau.fusionmon.client.screen.SpeciesInspectorScreen;
+import com.arnau.fusionmon.client.sound.FusionCry;
 import com.arnau.fusionmon.client.texture.FusionTextures;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -19,10 +22,14 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.common.NeoForge;
+
+import java.nio.file.Path;
+import java.util.Locale;
 
 /**
  * Arranque de la parte de cliente (NeoForge solo la crea en el cliente; la común es Fusionmon). Los mensajes del
@@ -70,7 +77,20 @@ public class FusionmonClient {
 					feedback(context, Component.translatable(FusionGraft.isForcedColors()
 							? "command.fusionmon.visual.forced" : "command.fusionmon.visual.graft"));
 					return 1;
-				}));
+				}))
+				// /fusionvisual cries blend|plain: el grito de las fusiones mezcla los de sus dos partes (FusionCry) o es el
+				// que toque Cobblemon (el del cuerpo con cabeza sobre cuerpo, el de la cabeza en modo colores)
+				.then(Commands.literal("cries")
+						.then(Commands.literal("blend").executes(context -> {
+							FusionCry.setBlended(true);
+							feedback(context, Component.translatable("command.fusionmon.visual.cries.blend"));
+							return 1;
+						}))
+						.then(Commands.literal("plain").executes(context -> {
+							FusionCry.setBlended(false);
+							feedback(context, Component.translatable("command.fusionmon.visual.cries.plain"));
+							return 1;
+						})));
 		if (dev) {
 			// /fusionvisual tail|decor|top on|off, align pivot|skull|base: para comparar reglas del graft
 			visual.then(Commands.literal("tail")
@@ -126,6 +146,29 @@ public class FusionmonClient {
 								feedback(context, Component.translatable("command.fusionmon.visual.align.base"));
 								return 1;
 							})));
+			// /fusionvisual atlas off|fill|prefer: cuánto se fía el graft del atlas de esqueletos (lo que deducen las
+			// animaciones, ver SkeletonAtlas): nada, para lo que no encuentran los nombres (por defecto) o antes que ellos
+			LiteralArgumentBuilder<CommandSourceStack> atlas = Commands.literal("atlas");
+			for (SkeletonAtlas.Mode mode : SkeletonAtlas.Mode.values()) {
+				String name = mode.name().toLowerCase(Locale.ROOT);
+				atlas.then(Commands.literal(name).executes(context -> {
+					FusionGraft.setAtlasMode(mode);
+					feedback(context, Component.translatable("command.fusionmon.visual.atlas." + name));
+					return 1;
+				}));
+			}
+			visual.then(atlas);
+			// /fusionvisual headpose stand|sleep|all: qué poses del cuerpo copia la cabeza pegada (FusionGraft.HeadPose)
+			LiteralArgumentBuilder<CommandSourceStack> headPose = Commands.literal("headpose");
+			for (FusionGraft.HeadPose pose : FusionGraft.HeadPose.values()) {
+				String name = pose.name().toLowerCase(Locale.ROOT);
+				headPose.then(Commands.literal(name).executes(context -> {
+					FusionGraft.setHeadPose(pose);
+					feedback(context, Component.translatable("command.fusionmon.visual.headpose." + name));
+					return 1;
+				}));
+			}
+			visual.then(headPose);
 		}
 		dispatcher.register(visual);
 
@@ -149,6 +192,21 @@ public class FusionmonClient {
 				client.tell(() -> client.setScreen(new SpeciesInspectorScreen()));
 				return 1;
 			}));
+			// /fusionatlas export: el atlas de esqueletos de todos los modelos base en run/fusionmon/skeleton-atlas.json
+			// (con el motor de animaciones de Cobblemon: para comparar con tools/skeleton-atlas o empezar una corrección)
+			dispatcher.register(Commands.literal("fusionatlas").then(Commands.literal("export").executes(context -> {
+				Path file = FMLPaths.GAMEDIR.get().resolve("fusionmon").resolve("skeleton-atlas.json");
+				try {
+					int count = SkeletonAtlas.export(file);
+					feedback(context, Component.translatable("command.fusionmon.atlas.exported", count,
+							file.toString()));
+				} catch (Exception e) {
+					Fusionmon.LOGGER.warn("No se ha podido exportar el atlas de esqueletos", e);
+					context.getSource().sendFailure(Component.translatable("command.fusionmon.atlas.failed",
+							String.valueOf(e.getMessage())));
+				}
+				return 1;
+			})));
 		}
 	}
 
@@ -162,6 +220,8 @@ public class FusionmonClient {
 		// (F3+T, otro resource pack), hay que volver a generarlas
 		event.registerReloadListener((ResourceManagerReloadListener) resourceManager -> {
 			FusionTextures.clear();
+			// Correcciones del atlas de esqueletos de los resource packs (y el atlas, que es de los modelos de antes)
+			SkeletonOverrides.reload(resourceManager);
 			// Con los modelos nuevos (otro resource pack...) una pareja que falló puede ir bien
 			FusionGraft.clearFailures();
 		});

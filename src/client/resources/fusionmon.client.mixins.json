@@ -4,11 +4,13 @@
 	"plugin": "com.arnau.fusionmon.client.FusionmonMixinPlugin",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
+		"BedrockSoundKeyframeMixin",
 		"ClientboundSeatAssignmentPacketHandlerMixin",
 		"InfoWidgetMixin",
 		"PokemonOnShoulderRendererMixin",
 		"PokemonRendererMixin",
 		"PosableModelMixin",
+		"PosableStateMixin",
 		"StatWidgetMixin",
 		"SummaryMixin",
 		"VaryingModelRepositoryMixin",

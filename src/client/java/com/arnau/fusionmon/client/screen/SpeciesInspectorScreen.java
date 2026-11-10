@@ -1,6 +1,7 @@
 package com.arnau.fusionmon.client.screen;
 
 import com.arnau.fusionmon.client.model.FusionGraft;
+import com.arnau.fusionmon.client.model.atlas.SkeletonAtlas;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.client.render.models.blockbench.FloatingState;
 import com.cobblemon.mod.common.client.render.models.blockbench.PosableModel;
@@ -50,6 +51,8 @@ public class SpeciesInspectorScreen extends Screen {
     private static final int YELLOW = 0xFFFF55;
     private static final int GREEN = 0x55FF55;
     private static final int RED = 0xFF7777;
+    /** El atlas de esqueletos (lo que deducen las animaciones). */
+    private static final int ATLAS = 0x88CCFF;
     private static final int SMALL = 20;
     private static final int GAP = 4;
     private static final int MARGIN = 6;
@@ -212,6 +215,10 @@ public class SpeciesInspectorScreen extends Screen {
                 or(String.join(", ", anatomy.decorations()))), x, y, panel, FusionGraft.INSPECT_TRUNK_DECOR & 0xFFFFFF);
         y = text(graphics, Component.translatable("gui.fusionmon.inspect.neck_decor",
                 or(String.join(", ", anatomy.neckDecorations()))), x, y, panel, FusionGraft.INSPECT_NECK_DECOR & 0xFFFFFF);
+        // Lo que deduce el atlas de esqueletos de las animaciones (y corrigen los packs), lo use el graft o no
+        y = text(graphics, Component.translatable("gui.fusionmon.inspect.atlas",
+                SkeletonAtlas.getMode().name().toLowerCase(Locale.ROOT), SkeletonAtlas.summary(poser)), x, y, panel,
+                ATLAS);
         y += 4;
 
         // Leyenda de colores y ayuda
