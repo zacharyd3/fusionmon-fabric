@@ -1,0 +1,20 @@
+{
+    "pokemon": {
+        "species": "lucario",
+        "moves": [
+            "aurasphere",
+            "nightslash",
+            "dragonpulse",
+            "swordsdance"
+        ],
+        "custom_properties": [
+            {
+                "name": "fusion_body",
+                "value": "absol"
+            }
+        ]
+    },
+    "raid_tier": "TIER_FOUR",
+    "raid_type": "FIGHTING",
+    "weight": 20.0
+}

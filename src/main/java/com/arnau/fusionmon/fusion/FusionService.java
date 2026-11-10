@@ -1,7 +1,6 @@
 package com.arnau.fusionmon.fusion;
 
 import com.arnau.fusionmon.Fusionmon;
-import com.arnau.fusionmon.worldfirst.WorldFirst;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.CobblemonNetwork;
 import com.cobblemon.mod.common.api.Priority;
@@ -50,12 +49,17 @@ public final class FusionService {
 
     public static void fuse(ServerPlayer player, Pokemon head, Pokemon body,
                             boolean natureFromBody, boolean abilityFromBody) {
+        // Mover Pokémon del equipo al fusionar no es "conseguir una fusión" (FusionObtained)
+        FusionObtained.whileFusing(() -> fuseNow(player, head, body, natureFromBody, abilityFromBody));
+    }
+
+    private static void fuseNow(ServerPlayer player, Pokemon head, Pokemon body,
+                                boolean natureFromBody, boolean abilityFromBody) {
         // Ya se hizo al abrir la pantalla, pero pudieron volver a megaevolucionar mientras estaba abierta. Antes de la
         // clave del Fusion Album: así no se apunta la forma mega
         FusionMegas.revert(head);
         FusionMegas.revert(body);
-        // La clave antes de fusionar: después, la cabeza ya es la fusión
-        String discovered = FusionDiscovery.key(head, body);
+        // Las formas antes de fusionar: después, la cabeza ya es la fusión
         FormData headForm = head.getForm();
         FormData bodyForm = body.getForm();
         combine(player, head, body, natureFromBody, abilityFromBody, ItemStack.EMPTY);
@@ -63,10 +67,8 @@ public final class FusionService {
         PlayerPartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
         party.remove(body);
         resendToClient(player, party, head);
-        if (FusionDiscovery.register(player, discovered)) {
-            // Primera vez para este jugador: ¿es la primera del mundo? (si el servidor participa)
-            WorldFirst.discovered(player, headForm, bodyForm);
-        }
+        // Fusion Album, World First, eventos para otros mods/KubeJS y logros
+        FusionProgress.fused(player, head, headForm, bodyForm, false);
 
         Fusionmon.LOGGER.info("{} ha fusionado {} + {}",
                 player.getName().getString(), head.getSpecies().getName(), body.getSpecies().getName());
@@ -81,6 +83,11 @@ public final class FusionService {
      */
     public static void reverse(ServerPlayer player, Pokemon fused, Parts parts, boolean swapped,
                                boolean natureFromBody, boolean abilityFromBody) {
+        FusionObtained.whileFusing(() -> reverseNow(player, fused, parts, swapped, natureFromBody, abilityFromBody));
+    }
+
+    private static void reverseNow(ServerPlayer player, Pokemon fused, Parts parts, boolean swapped,
+                                   boolean natureFromBody, boolean abilityFromBody) {
         // Por defecto (sin intercambiar) la cabeza nueva es el cuerpo de antes
         Pokemon head = swapped ? parts.head() : parts.body();
         Pokemon body = swapped ? parts.body() : parts.head();
@@ -101,7 +108,6 @@ public final class FusionService {
         fused.recall();
 
         // Se monta la fusión nueva antes de tocar el equipo: si algo fallase, la fusión de antes sigue en su sitio
-        String discovered = FusionDiscovery.key(head, body);
         FormData headForm = head.getForm();
         FormData bodyForm = body.getForm();
         combine(player, head, body, natureFromBody, abilityFromBody, stone);
@@ -110,9 +116,7 @@ public final class FusionService {
         party.remove(fused);
         // Colocar un Pokémon manda al cliente el Pokémon entero (con persistentData): no hace falta resendToClient
         party.set(slot, head);
-        if (FusionDiscovery.register(player, discovered)) {
-            WorldFirst.discovered(player, headForm, bodyForm);
-        }
+        FusionProgress.fused(player, head, headForm, bodyForm, true);
 
         Fusionmon.LOGGER.info("{} ha invertido su fusión: ahora {} + {}",
                 player.getName().getString(), head.getSpecies().getName(), body.getSpecies().getName());
@@ -268,6 +272,10 @@ public final class FusionService {
 
     /** Separa la fusión en las partes que ha devuelto prepareUnfuse (en el mismo tick: el equipo no ha cambiado). */
     public static void unfuse(ServerPlayer player, Pokemon fused, Parts parts) {
+        FusionObtained.whileFusing(() -> unfuseNow(player, fused, parts));
+    }
+
+    private static void unfuseNow(ServerPlayer player, Pokemon fused, Parts parts) {
         Pokemon head = parts.head();
         Pokemon body = parts.body();
         int experienceGained = FusionData.experienceGained(fused);
@@ -303,6 +311,7 @@ public final class FusionService {
             head.addExperienceWithPlayer(player, EXPERIENCE_SOURCE, experienceGained);
             body.addExperienceWithPlayer(player, EXPERIENCE_SOURCE, experienceGained);
         }
+        FusionProgress.unfused(player, head, body);
 
         Fusionmon.LOGGER.info("{} ha desfusionado {} + {}",
                 player.getName().getString(), head.getSpecies().getName(), body.getSpecies().getName());

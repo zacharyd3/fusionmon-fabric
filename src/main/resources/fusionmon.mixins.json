@@ -9,7 +9,9 @@
 		"MegaShowdownAspectUtilsMixin",
 		"PlayerPartyStoreMixin",
 		"PokemonEntityMixin",
+		"PokemonRequestMixin",
 		"PokemonMixin",
+		"PokemonPropertiesMixin",
 		"RidingControllerMixin",
 		"ServerEvolutionControllerMixin"
 	],

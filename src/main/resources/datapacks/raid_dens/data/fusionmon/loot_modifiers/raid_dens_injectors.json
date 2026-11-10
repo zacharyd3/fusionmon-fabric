@@ -1,0 +1,39 @@
+{
+  "type": "neoforge:add_table",
+  "conditions": [
+    {
+      "condition": "minecraft:any_of",
+      "terms": [
+        {
+          "condition": "neoforge:loot_table_id",
+          "loot_table_id": "cobblemonraiddens:raid/tier/tier_one"
+        },
+        {
+          "condition": "neoforge:loot_table_id",
+          "loot_table_id": "cobblemonraiddens:raid/tier/tier_two"
+        },
+        {
+          "condition": "neoforge:loot_table_id",
+          "loot_table_id": "cobblemonraiddens:raid/tier/tier_three"
+        },
+        {
+          "condition": "neoforge:loot_table_id",
+          "loot_table_id": "cobblemonraiddens:raid/tier/tier_four"
+        },
+        {
+          "condition": "neoforge:loot_table_id",
+          "loot_table_id": "cobblemonraiddens:raid/tier/tier_five"
+        },
+        {
+          "condition": "neoforge:loot_table_id",
+          "loot_table_id": "cobblemonraiddens:raid/tier/tier_six"
+        },
+        {
+          "condition": "neoforge:loot_table_id",
+          "loot_table_id": "cobblemonraiddens:raid/tier/tier_seven"
+        }
+      ]
+    }
+  ],
+  "table": "fusionmon:raid_dens/injectors"
+}

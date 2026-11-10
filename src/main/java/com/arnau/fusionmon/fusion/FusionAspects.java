@@ -59,6 +59,9 @@ public final class FusionAspects implements AspectProvider {
         if (bodySpecies != null) {
             // Solo la ruta ("charizard", no "cobblemon:charizard"): es lo cómodo de escribir en un resource pack
             aspects.add(BODY_SPECIES_PREFIX + bodySpecies.getResourceIdentifier().getPath());
+            // El mismo texto con el que se pide una fusión (FusionRequest): así unas propiedades con el aspect
+            // "fusion_body=charizard" (RCT, Raid Dens) también encajan ("matches") con la fusión que han creado
+            aspects.add(FusionRequest.ASPECT_PREFIX + bodySpecies.getResourceIdentifier().getPath());
         }
         for (String aspect : bodyAspects) {
             aspects.add(BODY_ASPECT_PREFIX + aspect);
@@ -68,7 +71,14 @@ public final class FusionAspects implements AspectProvider {
 
     @Override
     public Set<String> provide(PokemonProperties properties) {
-        // Las propiedades ("pikachu shiny=yes level=5") aún no pueden describir una fusión
-        return new HashSet<>();
+        // Propiedades que piden una fusión ("pikachu fusion_body=charizard"): lo que se pinte a partir de ellas (sin
+        // crear el Pokémon) también se ve como la fusión
+        try {
+            Species body = FusionRequest.requestedBody(properties);
+            return body == null ? new HashSet<>() : fusionAspects(body, Set.of());
+        } catch (RuntimeException e) {
+            FusionSafety.failed("los aspects de unas propiedades con fusion_body", e);
+            return new HashSet<>();
+        }
     }
 }

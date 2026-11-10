@@ -1,0 +1,26 @@
+{
+  "parent": "fusionmon:first_fusion",
+  "display": {
+    "icon": {
+      "id": "cobblemon:poke_ball"
+    },
+    "title": {
+      "translate": "advancement.fusionmon.discover_10.title"
+    },
+    "description": {
+      "translate": "advancement.fusionmon.discover_10.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "d": {
+      "trigger": "fusionmon:fusion",
+      "conditions": {
+        "min_discovered": 10
+      }
+    }
+  }
+}

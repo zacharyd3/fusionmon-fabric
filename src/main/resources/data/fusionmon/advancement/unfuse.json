@@ -1,0 +1,26 @@
+{
+  "parent": "fusionmon:first_fusion",
+  "display": {
+    "icon": {
+      "id": "cobblemon:poke_ball"
+    },
+    "title": {
+      "translate": "advancement.fusionmon.unfuse.title"
+    },
+    "description": {
+      "translate": "advancement.fusionmon.unfuse.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "unfuse": {
+      "trigger": "fusionmon:fusion",
+      "conditions": {
+        "action": "unfuse"
+      }
+    }
+  }
+}

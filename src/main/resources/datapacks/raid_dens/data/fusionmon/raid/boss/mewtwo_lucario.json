@@ -1,0 +1,20 @@
+{
+    "pokemon": {
+        "species": "mewtwo",
+        "moves": [
+            "psystrike",
+            "aurasphere",
+            "shadowball",
+            "calmmind"
+        ],
+        "custom_properties": [
+            {
+                "name": "fusion_body",
+                "value": "lucario"
+            }
+        ]
+    },
+    "raid_tier": "TIER_SIX",
+    "raid_type": "PSYCHIC",
+    "weight": 20.0
+}

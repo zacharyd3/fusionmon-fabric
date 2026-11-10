@@ -79,6 +79,11 @@ public final class FusionDiscovery {
         return player.getData(REVEAL_ALL) || player.getData(DISCOVERED).contains(key);
     }
 
+    /** Cuántas parejas tiene el jugador en su Fusion Album. */
+    public static int count(ServerPlayer player) {
+        return player.getData(DISCOVERED).size();
+    }
+
     /** Ver REVEAL_ALL. */
     public static void setRevealAll(ServerPlayer player, boolean reveal) {
         player.setData(REVEAL_ALL, reveal);

@@ -1,0 +1,20 @@
+{
+    "pokemon": {
+        "species": "garchomp",
+        "moves": [
+            "dragonclaw",
+            "xscissor",
+            "earthquake",
+            "bulletpunch"
+        ],
+        "custom_properties": [
+            {
+                "name": "fusion_body",
+                "value": "scizor"
+            }
+        ]
+    },
+    "raid_tier": "TIER_FIVE",
+    "raid_type": "DRAGON",
+    "weight": 20.0
+}

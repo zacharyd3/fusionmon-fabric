@@ -200,14 +200,21 @@ public final class FusionSelection {
             return;
         }
 
+        Pokemon head = choice.swapped() ? second : first;
+        Pokemon body = choice.swapped() ? first : second;
+        // Otros mods o scripts de KubeJS pueden prohibir esta fusión (antes de gastar nada)
+        Component blocked = FusionProgress.beforeFuse(player, head, body, false);
+        if (blocked != null) {
+            player.sendSystemMessage(blocked);
+            return;
+        }
+
         // El inyector se gasta al confirmar, no al abrir el selector (se puede cancelar)
         if (!FusionInjectorItem.consumeOne(player)) {
             player.sendSystemMessage(Component.translatable("message.fusionmon.no_injector"));
             return;
         }
 
-        Pokemon head = choice.swapped() ? second : first;
-        Pokemon body = choice.swapped() ? first : second;
         Pokemon natureSource = choice.natureFromB() ? second : first;
         Pokemon abilitySource = choice.abilityFromB() ? second : first;
         boolean natureFromBody = natureSource == body;
@@ -301,6 +308,11 @@ public final class FusionSelection {
         if (parts == null) {
             return;
         }
+        Component blocked = FusionProgress.beforeUnfuse(player, fused);
+        if (blocked != null) {
+            player.sendSystemMessage(blocked);
+            return;
+        }
 
         if (!FusionInjectorItem.consumeOne(player)) {
             player.sendSystemMessage(Component.translatable("message.fusionmon.no_injector"));
@@ -335,16 +347,22 @@ public final class FusionSelection {
             return;
         }
 
-        if (!FusionInjectorItem.consumeOne(player)) {
-            player.sendSystemMessage(Component.translatable("message.fusionmon.no_injector"));
-            return;
-        }
-
         // En la pantalla, A era el cuerpo de la fusión y B su cabeza; sin intercambiar, A pasa a ser la cabeza
         Pokemon a = parts.body();
         Pokemon b = parts.head();
         Pokemon head = choice.swapped() ? b : a;
         Pokemon body = choice.swapped() ? a : b;
+        Component blocked = FusionProgress.beforeFuse(player, head, body, true);
+        if (blocked != null) {
+            player.sendSystemMessage(blocked);
+            return;
+        }
+
+        if (!FusionInjectorItem.consumeOne(player)) {
+            player.sendSystemMessage(Component.translatable("message.fusionmon.no_injector"));
+            return;
+        }
+
         Pokemon natureSource = choice.natureFromB() ? b : a;
         Pokemon abilitySource = choice.abilityFromB() ? b : a;
 

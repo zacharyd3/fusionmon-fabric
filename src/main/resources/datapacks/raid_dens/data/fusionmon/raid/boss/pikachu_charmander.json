@@ -1,0 +1,20 @@
+{
+    "pokemon": {
+        "species": "pikachu",
+        "moves": [
+            "thundershock",
+            "ember",
+            "quickattack",
+            "tailwhip"
+        ],
+        "custom_properties": [
+            {
+                "name": "fusion_body",
+                "value": "charmander"
+            }
+        ]
+    },
+    "raid_tier": "TIER_ONE",
+    "raid_type": "ELECTRIC",
+    "weight": 20.0
+}

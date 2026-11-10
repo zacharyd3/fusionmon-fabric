@@ -14,10 +14,14 @@ import java.nio.file.Files;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.arnau.fusionmon.advancement.FusionTrigger;
 import com.arnau.fusionmon.command.FusionCommands;
+import com.arnau.fusionmon.compat.raiddens.RaidDensCompat;
 import com.arnau.fusionmon.fusion.FusionAspects;
 import com.arnau.fusionmon.fusion.FusionDiscovery;
 import com.arnau.fusionmon.fusion.FusionLevelUp;
+import com.arnau.fusionmon.fusion.FusionObtained;
+import com.arnau.fusionmon.fusion.FusionRequest;
 import com.arnau.fusionmon.fusion.FusionStatProvider;
 import com.arnau.fusionmon.fusion.FusionWorldAnimation;
 import com.arnau.fusionmon.item.ModItems;
@@ -51,6 +55,10 @@ public class Fusionmon {
 		FusionDiscovery.initialize(modBus);
 		// World First: quién descubrió primero cada fusión entre todos los servidores (solo si el servidor lo activa)
 		WorldFirst.initialize(modBus);
+		// Criterio de logro "fusionmon:fusion" (logros propios y misiones de FTB Quests)
+		FusionTrigger.initialize(modBus);
+		// Con Cobblemon Raid Dens: datapack incluido con jefes de incursión fusionados e inyectores en los premios
+		RaidDensCompat.initialize(modBus);
 		// Fusión animada en el mundo cuando los dos Pokémon están fuera (avanza en cada tick del servidor)
 		FusionWorldAnimation.initialize();
 		// Lo que se engancha a Cobblemon, en el hilo principal y uno detrás de otro: NeoForge construye los mods a la vez
@@ -71,6 +79,10 @@ public class Fusionmon {
 		FusionLevelUp.register();
 		// Etiquetas (aspects) que dicen al cliente que un Pokémon es una fusión y quién es su cuerpo
 		AspectProvider.Companion.register(new FusionAspects());
+		// "fusion_body=<especie>": fusiones pedidas por comandos, apariciones, Raid Dens, RCT... (FusionRequest)
+		FusionRequest.registerProperty();
+		// Fusiones conseguidas sin crearlas (capturadas, premios, regaladas): Fusion Album, eventos y logros
+		FusionObtained.register();
 	}
 
 	/**

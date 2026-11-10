@@ -1,0 +1,26 @@
+{
+  "parent": "fusionmon:root",
+  "display": {
+    "icon": {
+      "id": "cobblemon:ultra_ball"
+    },
+    "title": {
+      "translate": "advancement.fusionmon.obtain_fusion.title"
+    },
+    "description": {
+      "translate": "advancement.fusionmon.obtain_fusion.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "fusionmon:fusion",
+      "conditions": {
+        "action": "obtain"
+      }
+    }
+  }
+}

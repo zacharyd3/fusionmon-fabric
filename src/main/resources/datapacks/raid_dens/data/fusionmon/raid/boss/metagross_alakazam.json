@@ -1,0 +1,20 @@
+{
+    "pokemon": {
+        "species": "metagross",
+        "moves": [
+            "meteormash",
+            "psychic",
+            "zenheadbutt",
+            "bulletpunch"
+        ],
+        "custom_properties": [
+            {
+                "name": "fusion_body",
+                "value": "alakazam"
+            }
+        ]
+    },
+    "raid_tier": "TIER_FIVE",
+    "raid_type": "STEEL",
+    "weight": 20.0
+}

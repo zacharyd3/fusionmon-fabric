@@ -1,0 +1,26 @@
+{
+  "parent": "fusionmon:root",
+  "display": {
+    "icon": {
+      "id": "fusionmon:fusion_injector"
+    },
+    "title": {
+      "translate": "advancement.fusionmon.first_fusion.title"
+    },
+    "description": {
+      "translate": "advancement.fusionmon.first_fusion.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "fuse": {
+      "trigger": "fusionmon:fusion",
+      "conditions": {
+        "action": "fuse"
+      }
+    }
+  }
+}

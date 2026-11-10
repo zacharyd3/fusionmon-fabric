@@ -22,6 +22,16 @@ repositories {
 		url = "https://thedarkcolour.github.io/KotlinForForge/"
 		content { includeGroup "thedarkcolour" }
 	}
+	// Modrinth (solo para compilar las integraciones opcionales: Jade, KubeJS). Nada de esto va dentro del jar
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "Modrinth"
+				url = "https://api.modrinth.com/maven"
+			}
+		}
+		filter { includeGroup "maven.modrinth" }
+	}
 }
 
 sourceSets {
@@ -69,6 +79,13 @@ dependencies {
 	// El código Java usa kotlin.Unit (los eventos de Cobblemon son de Kotlin). En el juego lo pone Kotlin for
 	// Forge; esto es solo para compilar, por si el POM de Cobblemon no deja Kotlin al compilar
 	compileOnly "org.jetbrains.kotlin:kotlin-stdlib:${project.kotlin_version}"
+
+	// Integraciones opcionales (compat/): solo para compilar. Sus clases se cargan únicamente si el otro mod está
+	// instalado (Jade busca su plugin por la anotación @WailaPlugin; KubeJS, por kubejs.plugins.txt), así que el jar
+	// funciona igual sin ellos. Mismas versiones que el modpack All the Mons del usuario
+	compileOnly "maven.modrinth:jade:${project.jade_version}"
+	compileOnly "maven.modrinth:kubejs:${project.kubejs_version}"
+	compileOnly "maven.modrinth:rhino:${project.rhino_version}"
 }
 
 processResources {
