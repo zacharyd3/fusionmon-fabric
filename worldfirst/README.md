@@ -31,7 +31,12 @@ Both run the same code (`src/index.js`).
 
 ## Run it on your own server (Docker, Unraid)
 
-You need Docker; on Unraid it is built in. Use the Unraid web terminal (the `>_` icon at the top right).
+**Quickest on Unraid:** install the User Scripts plugin (Apps tab), add a new script, paste `unraid-setup.sh` from this
+folder, fill in the settings at its top (your server's name and, optionally, the path to its `config/fusionmon.json`),
+and run it. It does every step below, saves the admin password and the server token in
+`/mnt/user/appdata/fusionmon-worldfirst-secrets`, and can be run again to update.
+
+By hand: you need Docker; on Unraid it is built in. Use the Unraid web terminal (the `>_` icon at the top right).
 
 1. Put this `worldfirst` folder on the box, for example with git:
 
