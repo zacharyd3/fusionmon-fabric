@@ -47,19 +47,29 @@ public final class FusionConfig {
                 + " \"PokemonOnShoulderRendererMixin\") to turn off; forceColorsMode = true draws fusions with the head"
                 + " recolored instead of head-on-body (a server forces it on every player). creatorTools = true, for"
                 + " videos and screenshots: /fusionmon spawn and /fusionmon forget for operators on the server, and"
-                + " /fusionviewer (every fusion, P saves a transparent PNG to fusionmon/renders) in your game. Restart to"
-                + " apply changes.";
+                + " /fusionviewer (every fusion, P saves a transparent PNG to fusionmon/renders) in your game."
+                + " worldFirstUrl + worldFirstToken: take part in Fusionmon World First, a public record of which"
+                + " trainer discovered each fusion first across every server that takes part (empty = off; see"
+                + " worldfirst/README.md). worldFirstShowNames: send players' names (false = everyone anonymous); each"
+                + " player can choose with /worldfirst name. Restart to apply changes.";
         int statBonusPercent = 0;
         List<String> disabledMixins = new ArrayList<>();
         boolean forceColorsMode = false;
         boolean creatorTools = false;
+        String worldFirstUrl = "";
+        String worldFirstToken = "";
+        boolean worldFirstShowNames = true;
     }
 
-    private static final String[] KEYS = {"statBonusPercent", "disabledMixins", "forceColorsMode", "creatorTools"};
+    private static final String[] KEYS = {"statBonusPercent", "disabledMixins", "forceColorsMode", "creatorTools",
+            "worldFirstUrl", "worldFirstToken", "worldFirstShowNames"};
 
     private static int statBonusPercent = 0;
     private static boolean forceColorsMode = false;
     private static boolean creatorTools = false;
+    private static String worldFirstUrl = "";
+    private static String worldFirstToken = "";
+    private static boolean worldFirstShowNames = true;
     /**
      * El statBonusPercent del servidor al que está conectado este juego (FusionRulesPayload), o null si no hay. Los
      * stats también se calculan en el cliente (el resumen de Cobblemon pide getStat a FusionStatProvider): con el
@@ -104,6 +114,23 @@ public final class FusionConfig {
         return creatorTools;
     }
 
+    /**
+     * World First (ver WorldFirst): la dirección del servicio ("https://...workers.dev", sin "/" al final) y el token de
+     * este servidor. Vacíos = no participa (por defecto: nada sale del servidor sin que su dueño lo pida).
+     */
+    public static String worldFirstUrl() {
+        return worldFirstUrl;
+    }
+
+    public static String worldFirstToken() {
+        return worldFirstToken;
+    }
+
+    /** Si se mandan los nombres de los jugadores (cada uno puede cambiarlo con /worldfirst name). */
+    public static boolean worldFirstShowNames() {
+        return worldFirstShowNames;
+    }
+
     public static void load() {
         Data data = read(true);
         statBonusPercent = Math.clamp(data.statBonusPercent, 0, MAX_STAT_BONUS);
@@ -121,6 +148,12 @@ public final class FusionConfig {
         creatorTools = data.creatorTools;
         if (creatorTools) {
             LOGGER.info("Fusionmon: herramientas para creadores activadas por {}", FILE_NAME);
+        }
+        worldFirstUrl = data.worldFirstUrl == null ? "" : data.worldFirstUrl.trim().replaceAll("/+$", "");
+        worldFirstToken = data.worldFirstToken == null ? "" : data.worldFirstToken.trim();
+        worldFirstShowNames = data.worldFirstShowNames;
+        if (!worldFirstUrl.isEmpty() && !worldFirstToken.isEmpty()) {
+            LOGGER.info("Fusionmon: este servidor participa en World First ({})", worldFirstUrl);
         }
     }
 

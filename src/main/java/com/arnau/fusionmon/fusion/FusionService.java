@@ -1,6 +1,7 @@
 package com.arnau.fusionmon.fusion;
 
 import com.arnau.fusionmon.Fusionmon;
+import com.arnau.fusionmon.worldfirst.WorldFirst;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.CobblemonNetwork;
 import com.cobblemon.mod.common.api.Priority;
@@ -15,6 +16,7 @@ import com.cobblemon.mod.common.api.storage.party.PartyPosition;
 import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
 import com.cobblemon.mod.common.api.storage.pc.PCStore;
 import com.cobblemon.mod.common.net.messages.client.storage.party.SetPartyPokemonPacket;
+import com.cobblemon.mod.common.pokemon.FormData;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
@@ -54,12 +56,17 @@ public final class FusionService {
         FusionMegas.revert(body);
         // La clave antes de fusionar: después, la cabeza ya es la fusión
         String discovered = FusionDiscovery.key(head, body);
+        FormData headForm = head.getForm();
+        FormData bodyForm = body.getForm();
         combine(player, head, body, natureFromBody, abilityFromBody, ItemStack.EMPTY);
 
         PlayerPartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
         party.remove(body);
         resendToClient(player, party, head);
-        FusionDiscovery.register(player, discovered);
+        if (FusionDiscovery.register(player, discovered)) {
+            // Primera vez para este jugador: ¿es la primera del mundo? (si el servidor participa)
+            WorldFirst.discovered(player, headForm, bodyForm);
+        }
 
         Fusionmon.LOGGER.info("{} ha fusionado {} + {}",
                 player.getName().getString(), head.getSpecies().getName(), body.getSpecies().getName());
@@ -95,13 +102,17 @@ public final class FusionService {
 
         // Se monta la fusión nueva antes de tocar el equipo: si algo fallase, la fusión de antes sigue en su sitio
         String discovered = FusionDiscovery.key(head, body);
+        FormData headForm = head.getForm();
+        FormData bodyForm = body.getForm();
         combine(player, head, body, natureFromBody, abilityFromBody, stone);
         PlayerPartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
         int slot = slotOf(party, fused);
         party.remove(fused);
         // Colocar un Pokémon manda al cliente el Pokémon entero (con persistentData): no hace falta resendToClient
         party.set(slot, head);
-        FusionDiscovery.register(player, discovered);
+        if (FusionDiscovery.register(player, discovered)) {
+            WorldFirst.discovered(player, headForm, bodyForm);
+        }
 
         Fusionmon.LOGGER.info("{} ha invertido su fusión: ahora {} + {}",
                 player.getName().getString(), head.getSpecies().getName(), body.getSpecies().getName());

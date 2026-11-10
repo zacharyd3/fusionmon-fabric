@@ -13,6 +13,12 @@ Every pair is built on the fly, so any two species can be fused: their own model
 - **Fusion Album**: sneak + right-click with the injector (or `/fusionalbum`) to browse the fusions you have discovered.
 - Fusions battle with their fused types and stats, have the size and ride of their body, evolve through either part (level, items and trade with the Link Cable) and learn level-up moves from both.
 - Splitting gives both Pokémon all the experience earned as a fusion.
+- **Fusion cries**: a fusion cries with both voices, head and body blended. The grafted head opens its mouth, attacks,
+  faints and sleeps along with the body.
+- **Skeleton atlas**: besides bone names, Fusionmon reads each model's animations to tell heads, legs and wings apart,
+  so models from addons and resource packs fuse better. Resource packs can correct any model (`docs/skeleton-atlas.md`).
+- **World First** (opt-in for servers): the first trainer anywhere to discover a fusion gets a server-wide shout-out and
+  a place on a shared leaderboard (`worldfirst/README.md`).
 
 ## Crafting
 
@@ -22,6 +28,9 @@ Fusion Injector (crafting table): redstone in the bottom-left corner, lapis lazu
 
 - `/fusionalbum`: open your Fusion Album.
 - `/fusionvisual graft|colors`: how fusions look on your screen (fused model, or just the head recolored).
+- `/fusionvisual cries blend|plain`: fusions cry with both voices, or just one.
+- `/worldfirst`: whether this server takes part in World First, and the global numbers. `/worldfirst name show|hide`:
+  whether your discoveries carry your name.
 - `/fusionmon info|unfuse <slot>` (operators): inspect or split the fusion in one of your party slots.
 
 ## Requirements
