@@ -20,6 +20,14 @@ Every pair is built on the fly, so any two species can be fused: their own model
 - **World First** (opt-in for servers): the first trainer anywhere to discover a fusion gets a server-wide shout-out and
   a place on a shared leaderboard (`worldfirst/README.md`).
 
+- **Advancements**: a Fusionmon advancement tab (first fusion, reverse, unfuse, catch a fusion, discover 10 / 25 / 50 /
+  100 fusions), with a `fusionmon:fusion` criterion datapacks can use.
+- **Fusions from anywhere**: `fusion_body=<species>` turns any Pokémon Cobblemon creates into a fusion:
+  `/pokespawn pikachu fusion_body=charizard`, raid bosses, trainer teams…
+- **Integrations** (all optional, see `docs/integrations.md`): fusion raid bosses and injector rewards for Cobblemon Raid
+  Dens, fusions in Radical Cobblemon Trainers teams, `FusionmonEvents` for KubeJS, a ready-made FTB Quests chapter, and a
+  "Fusion: head + body" line in Jade.
+
 ## Crafting
 
 Fusion Injector (crafting table): redstone in the bottom-left corner, lapis lazuli in the center and one of copper ingot, iron ingot, gold ingot, diamond or netherite ingot in the top-right corner. The accepted materials are the item tag `fusionmon:fusion_injector_materials`, so datapacks can change them.

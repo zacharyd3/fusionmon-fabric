@@ -1,0 +1,29 @@
+	chapter.F7A0A0DFD425D8A4.title: "Fusionmon"
+	chapter.F7A0A0DFD425D8A4.chapter_subtitle: ["Fuse your Pokémon, Infinite Fusion style"]
+	quest.62844DD744FCDD6F.title: "Fusion Injector"
+	quest.62844DD744FCDD6F.quest_subtitle: "Where it all begins"
+	quest.62844DD744FCDD6F.quest_desc: ["Craft a &dFusion Injector&r: redstone, lapis and a fusion material in a diagonal (check JEI)." "" "Right-click it to pick two Pokémon from your party. &7Shift + right-click&r opens your &dFusion Album&r."]
+	quest.B680DA1EB8198BA2.title: "Two Become One"
+	quest.B680DA1EB8198BA2.quest_subtitle: "Fuse two Pokémon"
+	quest.B680DA1EB8198BA2.quest_desc: ["Pick a &bhead&r and a &cbody&r. The head keeps its moves; the body gives its shape, size and colours." "" "Every new pair starts as a black silhouette: you only see it once you make it."]
+	quest.4E6E71DDDACD28C7.title: "Other Way Around"
+	quest.4E6E71DDDACD28C7.quest_subtitle: "Reverse a fusion"
+	quest.4E6E71DDDACD28C7.quest_desc: ["Use the injector on a fusion and choose &eReverse&r: the body becomes the head." "Head + body and body + head are two different fusions!"]
+	quest.C98F5A8D9A999977.title: "Going Separate Ways"
+	quest.C98F5A8D9A999977.quest_subtitle: "Unfuse a fusion"
+	quest.C98F5A8D9A999977.quest_desc: ["Use the injector on a fusion and choose &eUnfuse&r. Both Pokémon come back with all the EXP the fusion earned."]
+	quest.BAA35396A071D830.title: "Found in the Wild"
+	quest.BAA35396A071D830.quest_subtitle: "Get a fusion you didn't make"
+	quest.BAA35396A071D830.quest_desc: ["Some &6Raid Dens&r hold &dfusion bosses&r: beat one and catch it!" "Trainers may also give or use fusions."]
+	quest.AA3F315667099A50.title: "Budding Fusionist"
+	quest.AA3F315667099A50.quest_subtitle: "10 fusions in your Fusion Album"
+	quest.AA3F315667099A50.quest_desc: ["Try different pairs: every combination looks, types and fights differently."]
+	quest.4D318D1D02EC5314.title: "Fusion Researcher"
+	quest.4D318D1D02EC5314.quest_subtitle: "25 fusions in your Fusion Album"
+	quest.4D318D1D02EC5314.quest_desc: ["Your Fusion Album (&7Shift + right-click&r with the injector, or &7/fusionalbum&r) lists every pair you discovered."]
+	quest.AF88BF62991811E3.title: "Fusion Professor"
+	quest.AF88BF62991811E3.quest_subtitle: "50 fusions in your Fusion Album"
+	quest.AF88BF62991811E3.quest_desc: ["Halfway to a hundred!"]
+	quest.EF523927565F9F8B.title: "Infinite Fusion"
+	quest.EF523927565F9F8B.quest_subtitle: "100 fusions in your Fusion Album"
+	quest.EF523927565F9F8B.quest_desc: ["A true fusion master."]
