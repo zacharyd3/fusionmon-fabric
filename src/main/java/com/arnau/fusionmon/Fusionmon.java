@@ -22,6 +22,7 @@ import com.arnau.fusionmon.fusion.FusionStatProvider;
 import com.arnau.fusionmon.fusion.FusionWorldAnimation;
 import com.arnau.fusionmon.item.ModItems;
 import com.arnau.fusionmon.network.ModNetworking;
+import com.arnau.fusionmon.worldfirst.WorldFirst;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.pokemon.aspect.AspectProvider;
 import com.cobblemon.mod.common.api.pokemon.stats.StatProvider;
@@ -48,6 +49,8 @@ public class Fusionmon {
 		ModNetworking.initialize(modBus);
 		// Registro de fusiones descubiertas de cada jugador (dato guardado con su partida)
 		FusionDiscovery.initialize(modBus);
+		// World First: quién descubrió primero cada fusión entre todos los servidores (solo si el servidor lo activa)
+		WorldFirst.initialize(modBus);
 		// Fusión animada en el mundo cuando los dos Pokémon están fuera (avanza en cada tick del servidor)
 		FusionWorldAnimation.initialize();
 		// Lo que se engancha a Cobblemon, en el hilo principal y uno detrás de otro: NeoForge construye los mods a la vez

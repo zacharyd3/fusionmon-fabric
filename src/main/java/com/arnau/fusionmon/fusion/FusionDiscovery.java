@@ -70,7 +70,8 @@ public final class FusionDiscovery {
         return part(head) + ">" + part(body);
     }
 
-    private static String part(FormData form) {
+    /** Una parte de la clave ("cobblemon:charizard/normal"): también la usa World First. */
+    public static String part(FormData form) {
         return form.getSpecies().getResourceIdentifier() + "/" + form.getName().toLowerCase(Locale.ROOT);
     }
 
@@ -83,16 +84,17 @@ public final class FusionDiscovery {
         player.setData(REVEAL_ALL, reveal);
     }
 
-    /** Apunta una pareja como descubierta (si ya lo estaba, no hace nada). */
-    public static void register(ServerPlayer player, String key) {
+    /** Apunta una pareja como descubierta (si ya lo estaba, no hace nada). Devuelve si es nueva para el jugador. */
+    public static boolean register(ServerPlayer player, String key) {
         List<String> discovered = player.getData(DISCOVERED);
         if (discovered.contains(key)) {
-            return;
+            return false;
         }
         // Lista nueva en vez de cambiar la guardada: lo que devuelve el codec al cargar puede no admitir cambios
         List<String> updated = new ArrayList<>(discovered);
         updated.add(key);
         player.setData(DISCOVERED, List.copyOf(updated));
+        return true;
     }
 
     /**

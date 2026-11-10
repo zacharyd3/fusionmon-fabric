@@ -1,0 +1,5 @@
+{
+  "models": ["cobblemon:delibird.geo"],
+  "wings": ["arm_left", "arm_right"],
+  "arms": []
+}

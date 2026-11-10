@@ -1,0 +1,24 @@
+name = "fusionmon-worldfirst"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "fusionmon-worldfirst"
+# Paste the id that `npx wrangler d1 create fusionmon-worldfirst` prints
+database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
+
+[vars]
+# "open": any server owner can get a token with POST /api/register (a few per address and day).
+# "closed": only you can create tokens (POST /api/admin/servers with ADMIN_TOKEN).
+REGISTRATION = "closed"
+# Species counted for the "% discovered" bar (Cobblemon has 1025; species pairs = this squared)
+TOTAL_SPECIES = "1025"
+# Post one in every N world firsts to Discord (plus every 1000th). 1 = all of them
+DISCORD_EVERY = "1"
+MAX_REPORTS_PER_SERVER_HOUR = "600"
+MAX_REPORTS_PER_PLAYER_HOUR = "120"
+MAX_REGISTRATIONS_PER_DAY = "3"
+
+# Secrets (never in this file): npx wrangler secret put ADMIN_TOKEN
+#                               npx wrangler secret put DISCORD_WEBHOOK_URL   (optional)

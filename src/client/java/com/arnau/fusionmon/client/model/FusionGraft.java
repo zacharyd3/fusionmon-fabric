@@ -2,14 +2,20 @@ package com.arnau.fusionmon.client.model;
 
 import com.arnau.fusionmon.Fusionmon;
 import com.arnau.fusionmon.client.CobblemonCompat;
+import com.arnau.fusionmon.client.model.atlas.SkeletonAtlas;
+import com.arnau.fusionmon.client.model.atlas.SkeletonClassifier;
+import com.arnau.fusionmon.client.model.atlas.SkeletonClassifier.Role;
+import com.arnau.fusionmon.client.model.atlas.SkeletonClassifier.Skeleton;
 import com.arnau.fusionmon.client.texture.FusionBody;
 import com.arnau.fusionmon.client.texture.FusionTextures;
+import com.arnau.fusionmon.fusion.FusionAspects;
 import com.cobblemon.mod.common.client.render.ModelLayer;
 import com.cobblemon.mod.common.client.render.VaryingRenderableResolver;
 import com.cobblemon.mod.common.client.render.models.blockbench.FloatingState;
 import com.cobblemon.mod.common.client.render.models.blockbench.PosableModel;
 import com.cobblemon.mod.common.client.render.models.blockbench.PosableState;
 import com.cobblemon.mod.common.client.render.models.blockbench.pose.Bone;
+import com.cobblemon.mod.common.client.render.models.blockbench.pose.Pose;
 import com.cobblemon.mod.common.client.render.models.blockbench.repository.VaryingModelRepository;
 import com.cobblemon.mod.common.entity.PoseType;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -138,6 +144,8 @@ public final class FusionGraft {
 
     /** Clase de adorno de las colas puestas en un cuerpo sin cola. */
     private static final String TAIL = "tail";
+    /** Clase de adorno de las alas (la que sale de "wing_left", "closed_wings"... y de las alas del atlas). */
+    private static final String WING = "wing";
     /** Trozos de nombre que hacen adorno a un hueso aunque lleve anatomía en el nombre: la cría de Kangaskhan ("torso_kid"). */
     private static final Set<String> ALWAYS_DECORATION = Set.of("kid", "baby", "child");
     /**
@@ -242,6 +250,31 @@ public final class FusionGraft {
     private static final Map<PosableState, ResourceLocation> HEADS = new WeakHashMap<>();
     /** Estado de animación propio de la cabeza pegada de cada fusión (para que parpadee a su ritmo, etc.). */
     private static final Map<PosableState, FloatingState> HEAD_STATES = new WeakHashMap<>();
+    /** Los estados de HEAD_STATES: lo que hace una cabeza pegada no se repite ni suena (ya suena el cuerpo). */
+    private static final Set<PosableState> HEAD_STATE_SET = Collections.newSetFromMap(new WeakHashMap<>());
+    /**
+     * Animaciones sueltas que ha empezado el cuerpo de una fusión (grito, ataques, retroceso...: los nombres que manda
+     * el servidor, ver PosableStateMixin) y que su cabeza pegada hará con las suyas en el siguiente fotograma.
+     */
+    private static final Map<PosableState, Set<String>> MIRRORED = new WeakHashMap<>();
+    /** Fusiones cuya cabeza pegada ya se ha desmayado (Cobblemon empieza el desmayo en el cliente, sin paquete). */
+    private static final Set<PosableState> FAINTED = Collections.newSetFromMap(new WeakHashMap<>());
+
+    /**
+     * Qué poses del cuerpo copia la cabeza pegada (/fusionvisual headpose ...). Sus animaciones de reposo (parpadeo,
+     * mirar) van siempre; además, con la pose del cuerpo, la cabeza duerme con los ojos cerrados cuando duerme el
+     * cuerpo y se mece como en su modelo al andar o volar.
+     */
+    public enum HeadPose {
+        /** Siempre de pie, como antes. */
+        STAND,
+        /** De pie, salvo dormida cuando el cuerpo duerme (por defecto: lo que más se notaba). */
+        SLEEP,
+        /** La misma clase de pose que el cuerpo (andar, volar, nadar, dormir), si la cabeza la tiene. */
+        ALL
+    }
+
+    private static HeadPose headPose = HeadPose.SLEEP;
     /** Cabezas de cada modelo (no cambian). */
     private static final Map<PosableModel, ModelHeads> HEAD_BONES = new WeakHashMap<>();
     /** Tamaño de cada cabeza con sus hijos, para escalar la cabeza nueva. */
@@ -436,6 +469,58 @@ public final class FusionGraft {
         graftVersion++;
     }
 
+    /** Cuánto se fía el graft del atlas de esqueletos (/fusionvisual atlas off|fill|prefer). */
+    public static void setAtlasMode(SkeletonAtlas.Mode mode) {
+        SkeletonAtlas.setMode(mode);
+        // Las cabezas, colas y extremidades de cada modelo dependen del modo: se vuelven a buscar
+        HEAD_BONES.clear();
+        graftVersion++;
+    }
+
+    public static void setHeadPose(HeadPose value) {
+        headPose = value;
+    }
+
+    public static HeadPose getHeadPose() {
+        return headPose;
+    }
+
+    /**
+     * El cuerpo de una fusión empieza animaciones sueltas (PosableState.addFirstAnimation: grito, ataque, retroceso...):
+     * se apuntan para que su cabeza pegada haga las suyas (ver animateHead). Así el que grita o ataca es el Pokémon
+     * entero, no solo el cuerpo con la cabeza quieta encima.
+     */
+    public static void mirrorAnimation(PosableState state, Set<String> animations) {
+        if (animations.isEmpty() || HEAD_STATE_SET.contains(state)
+                || !state.getCurrentAspects().contains(FusionAspects.FUSION)) {
+            return;
+        }
+        MIRRORED.merge(state, Set.copyOf(animations), (old, added) -> {
+            Set<String> all = new java.util.LinkedHashSet<>(old);
+            all.addAll(added);
+            return all;
+        });
+    }
+
+    /** ¿Es el estado de la cabeza pegada de alguna fusión? (sus sonidos no suenan: ver FusionCry). */
+    public static boolean isHeadState(PosableState state) {
+        return HEAD_STATE_SET.contains(state);
+    }
+
+    /**
+     * ¿Se está pintando este estado con el modelo del cuerpo (cabeza sobre cuerpo)? Entonces lo que suena con sus
+     * animaciones (el grito) es del cuerpo; en modo colores, de la cabeza.
+     */
+    public static boolean speaksAsBody(PosableState state) {
+        CachedGraft cached = GRAFTS.get(state);
+        return cached != null && cached.graft() != null && state.getCurrentModel() == cached.graft().bodyModel;
+    }
+
+    /** La especie de la cabeza de una fusión pintada con cabeza sobre cuerpo ("cobblemon:charizard"), o null. */
+    public static ResourceLocation headSpecies(PosableState state) {
+        return HEADS.get(state);
+    }
+
     public static boolean hasTails() {
         return tails;
     }
@@ -565,6 +650,7 @@ public final class FusionGraft {
     /** Al recargar recursos: los modelos son otros, así que se vuelve a intentar con las parejas que fallaron. */
     public static void clearFailures() {
         FAILED.clear();
+        HEAD_BONES.clear();
         // Los modelos son otros: los montajes guardados apuntan a los de antes
         graftVersion++;
     }
@@ -2419,11 +2505,16 @@ public final class FusionGraft {
      * Cobblemon para pintar un Pokémon en un menú). Si la fusión es una entidad, la cabeza mira hacia donde mira.
      */
     private static FloatingState animateHead(Graft graft, PosableState state) {
-        FloatingState headState = HEAD_STATES.computeIfAbsent(state, key -> new FloatingState());
+        FloatingState headState = HEAD_STATES.computeIfAbsent(state, key -> {
+            FloatingState created = new FloatingState();
+            HEAD_STATE_SET.add(created);
+            return created;
+        });
         headState.setCurrentAspects(state.getCurrentAspects());
         headState.setCurrentModel(graft.headModel);
-        headState.setPoseToFirstSuitable(PoseType.STAND);
+        poseHead(graft, state, headState);
         headState.updatePartialTicks(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false));
+        mirrorOneShots(state, headState);
 
         float headYaw = 0;
         float headPitch = 0;
@@ -2434,6 +2525,56 @@ public final class FusionGraft {
         }
         graft.headModel.applyAnimations(null, headState, 0, 0, 0, headYaw, headPitch);
         return headState;
+    }
+
+    /**
+     * La pose de la cabeza pegada: de pie, o la misma clase de pose que el cuerpo (ver HeadPose) si su modelo la tiene.
+     * Sin transiciones: es un estado suelto, y cambiar de pose de golpe solo se nota en la cabeza.
+     */
+    private static void poseHead(Graft graft, PosableState state, FloatingState headState) {
+        PoseType wanted = PoseType.STAND;
+        if (headPose != HeadPose.STAND) {
+            PoseType body = bodyPoseType(graft, state);
+            if (body == PoseType.SLEEP || headPose == HeadPose.ALL && body != null) {
+                wanted = body;
+            }
+        }
+        Pose pose = graft.headModel.getFirstSuitablePose(headState, wanted);
+        // Si la cabeza no tiene esa pose, Cobblemon devuelve la primera que haya (a veces una de combate): de pie
+        if (!pose.getPoseTypes().contains(wanted)) {
+            pose = graft.headModel.getFirstSuitablePose(headState, PoseType.STAND);
+        }
+        if (!pose.getPoseName().equals(headState.getCurrentPose())) {
+            headState.setPose(pose.getPoseName());
+        }
+    }
+
+    /** La clase de pose en la que está el cuerpo (la primera de su pose: "walking" → WALK), o null. */
+    private static PoseType bodyPoseType(Graft graft, PosableState state) {
+        String name = state.getCurrentPose();
+        Pose pose = name == null ? null : graft.bodyModel.getPoses().get(name);
+        if (pose == null || pose.getPoseTypes().isEmpty()) {
+            return null;
+        }
+        return pose.getPoseTypes().iterator().next();
+    }
+
+    /**
+     * Lo que el cuerpo ha empezado desde el último fotograma (ver mirrorAnimation), la cabeza lo hace con las
+     * animaciones de su especie: abre la boca al gritar, se mueve al atacar. Y se desmaya con él.
+     */
+    private static void mirrorOneShots(PosableState state, FloatingState headState) {
+        Set<String> started = MIRRORED.remove(state);
+        if (started != null) {
+            headState.addFirstAnimation(started);
+        }
+        if (state.getEntity() instanceof LivingEntity living && living.isDeadOrDying()) {
+            if (FAINTED.add(state)) {
+                headState.addFirstAnimation(Set.of("faint"));
+            }
+        } else {
+            FAINTED.remove(state);
+        }
     }
 
     // ---- Buscar las cabezas de un modelo ----
@@ -2452,32 +2593,51 @@ public final class FusionGraft {
             return new ModelHeads(List.of(), true, Map.of(), null, null, List.of(), null, List.of(), List.of(), null,
                     List.of(), List.of());
         }
-        List<HeadBone> arms = findArms(root);
-        List<HeadBone> legs = findLegs(root);
+        // Lo que deducen las animaciones y corrigen los resource packs (ver SkeletonAtlas): rellena lo que no
+        // encuentran los nombres, o manda si un pack lo dice o con /fusionvisual atlas prefer
+        Skeleton atlas = SkeletonAtlas.of(model);
+        List<HeadBone> arms = atlasParts(root, atlas, Role.ARM, findArms(root));
+        List<HeadBone> legs = atlasParts(root, atlas, Role.LEG, findLegs(root));
+        if (atlas.corrected().contains(Role.HEAD) && atlas.head() == null) {
+            // Un pack dice que no tiene cabeza: cuerpo-cabeza
+            return headless(root, atlas, Map.of(), arms, legs);
+        }
 
         boolean whole = false;
         Map<ModelPart, String> limbs = Map.of();
         List<List<ModelPart>> paths = new ArrayList<>();
-        List<ModelPart> primary = firstPath(root, "head"::equals);
+        // La cabeza de un pack (o del atlas, con "prefer") va antes que la de los nombres
+        List<ModelPart> chosen = atlasHead(root, atlas, true);
+        List<ModelPart> primary = chosen != null ? null : firstPath(root, "head"::equals);
         if (primary != null && cubes(primary.getLast()) == cubes(root)) {
             // Su "head" lo lleva todo, patas incluidas (Corsola, Sunkern, Inkay, Gulpin, Nihilego: solo esos 6 en
             // Cobblemon y AllTheMons). Como cuerpo, ocultarla dejaba solo la cabeza nueva: es un cuerpo sin cabeza,
             // como Voltorb (conserva sus ramas y lleva los complementos). Como cabeza, se pega entero
-            return headless(root, Map.of(), arms, legs);
+            return headless(root, atlas, Map.of(), arms, legs);
         }
         if (primary == null) {
             primary = firstPath(root, "locator_head"::equals);
-            if (primary != null) {
+            if (chosen != null) {
+                // Lo que mira al jugador ya es la cabeza con su cara ("head_ai", "head_top"...): sin withSkull, que
+                // subiría un pivote sin cubos propios hasta el cuello
+                primary = withFace(root, chosen);
+            } else if (primary != null) {
                 // Quitamos el localizador: la cabeza es su padre
                 primary.remove(primary.size() - 1);
                 primary = withSkull(withFace(root, primary));
             } else if (firstPath(root, name -> name.matches("head\\d*|head_(left|right)")) == null) {
-                // Sin "head", "locator_head" ni "head2"/"head_left"...: el hueso del que cuelga toda la cara. Modelos
-                // de resource packs que no siguen los nombres de Cobblemon (Azurill de Cobbleverse: "RightEye",
-                // "LeftEye" y "mouth" cuelgan de "body") y algunos de Cobblemon (Heracross, Krabby, Drifblim...)
-                primary = faceHolder(root);
-                if (primary != null) {
-                    primary = withSkull(primary);
+                // Sin "head", "locator_head" ni "head2"/"head_left"...: lo que mira al jugador (atlas: Hydrapple
+                // "head_ai", Minior), si no, el hueso del que cuelga toda la cara. Modelos de resource packs que no
+                // siguen los nombres de Cobblemon (Azurill de Cobbleverse: "RightEye", "LeftEye" y "mouth" cuelgan de
+                // "body") y algunos de Cobblemon (Heracross, Krabby, Drifblim...)
+                List<ModelPart> looking = atlasHead(root, atlas, false);
+                if (looking != null) {
+                    primary = withFace(root, looking);
+                } else {
+                    primary = faceHolder(root);
+                    if (primary != null) {
+                        primary = withSkull(primary);
+                    }
                 }
             }
             if (primary != null) {
@@ -2489,7 +2649,7 @@ public final class FusionGraft {
                 ModelPart part = primary.get(primary.size() - 1);
                 whole = volume(part) >= WHOLE_MODEL_SHARE * volume(root);
                 if (cubes(part) == cubes(root)) {
-                    return headless(root, Map.of(), arms, legs);
+                    return headless(root, atlas, Map.of(), arms, legs);
                 }
                 if (whole) {
                     limbs = new LinkedHashMap<>();
@@ -2514,11 +2674,11 @@ public final class FusionGraft {
             heads.add(new HeadBone(part, path));
         }
         if (heads.isEmpty()) {
-            return headless(root, limbs, arms, legs);
+            return headless(root, atlas, limbs, arms, legs);
         }
         // En un cuerpo-cabeza la "cabeza" es su cuerpo: la cola de dentro también es cola (la de Clefairy cuelga de
         // "torso", el padre de "locator_head"), no un mechón de pelo
-        Tail tail = findTail(root, whole ? List.of() : heads);
+        Tail tail = atlasTail(root, atlas, findTail(root, whole ? List.of() : heads), whole ? List.of() : heads);
         List<ModelPart> headPath = heads.get(0).path;
         HeadBone trunk = findTrunk(headPath, heads, tail);
         if (tail == null && trunk != null) {
@@ -2538,20 +2698,141 @@ public final class FusionGraft {
         List<HeadBone> chains = heads.size() > 1 && companions.isEmpty() ? findChains(heads) : List.of();
         // Un "todo cabeza" (Gengar, Clefairy, Haunter) como cuerpo es un cuerpo-cabeza: se queda entero y los
         // complementos de la otra especie van sobre su pieza principal, como en Voltorb
-        return new ModelHeads(heads, whole, limbs, tail, trunk, findDecorations(headPath, heads, tail, cluster),
-                findSpineEnd(headPath, trunk), chains, companions, whole ? findTop(root) : null, arms, legs);
+        return new ModelHeads(heads, whole, limbs, tail, trunk,
+                findDecorations(headPath, heads, tail, cluster, atlasWings(root, atlas)), findSpineEnd(headPath, trunk),
+                chains, companions, whole ? findTop(root) : null, arms, legs);
     }
 
     /**
      * Un modelo sin cabeza (cuerpo-cabeza): como CABEZA se pega entero; como CUERPO se queda entero y lleva los
      * complementos de la otra especie (ver findTop, renderOnBody).
      */
-    private static ModelHeads headless(ModelPart root, Map<ModelPart, String> limbs, List<HeadBone> arms,
-                                       List<HeadBone> legs) {
+    private static ModelHeads headless(ModelPart root, Skeleton atlas, Map<ModelPart, String> limbs,
+                                       List<HeadBone> arms, List<HeadBone> legs) {
         // Sin cabeza no hay pelo que confundir con una cola: vale cualquiera
-        Tail tail = findTail(root, List.of());
+        Tail tail = atlasTail(root, atlas, findTail(root, List.of()), List.of());
         return new ModelHeads(List.of(), true, withoutParts(limbs, arms, tail), tail, null, List.of(), null, List.of(),
                 List.of(), findTop(root), arms, legs);
+    }
+
+    // ---- El atlas de esqueletos (ver SkeletonAtlas): para lo que no encuentran los nombres ----
+
+    /**
+     * ¿Se usa esta pieza del atlas? Con "fill" (por defecto), del movimiento solo lo que acierta casi siempre en la
+     * simulación sobre todos los modelos (docs/species/skeleton-atlas.md): patas y alas. Los brazos que se balancean
+     * salían a menudo aletas, bufandas o patas delanteras, y las colas que se mecen, pelo o hojas: esos solo si los
+     * declara el poser o un resource pack, o con "prefer".
+     */
+    private static boolean usable(SkeletonClassifier.Part part) {
+        return switch (SkeletonAtlas.getMode()) {
+            case OFF -> false;
+            case PREFER -> true;
+            case FILL -> part.source() != SkeletonClassifier.Source.MOTION || part.role() == Role.LEG
+                    || part.role() == Role.WING;
+        };
+    }
+
+    /**
+     * Brazos o patas: los que diga un resource pack; si no, los de los nombres, y si no encuentran ninguno, los del
+     * atlas ("prefer": al revés).
+     */
+    private static List<HeadBone> atlasParts(ModelPart root, Skeleton atlas, Role role, List<HeadBone> named) {
+        if (atlas.corrected().contains(role)) {
+            return atlasBones(root, atlas.of(role));
+        }
+        List<SkeletonClassifier.Part> parts = new ArrayList<>();
+        for (SkeletonClassifier.Part part : atlas.of(role)) {
+            if (usable(part)) {
+                parts.add(part);
+            }
+        }
+        if (SkeletonAtlas.getMode() == SkeletonAtlas.Mode.PREFER) {
+            List<HeadBone> found = atlasBones(root, parts);
+            return found.isEmpty() ? named : found;
+        }
+        return named.isEmpty() ? atlasBones(root, parts) : named;
+    }
+
+    /** Los huesos de unas piezas del atlas, con su camino desde la raíz (los que no estén, fuera). */
+    private static List<HeadBone> atlasBones(ModelPart root, List<SkeletonClassifier.Part> parts) {
+        List<HeadBone> bones = new ArrayList<>();
+        for (SkeletonClassifier.Part part : parts) {
+            List<ModelPart> path = atlasPath(root, part.bone());
+            if (path != null) {
+                bones.add(new HeadBone(path.getLast(), path));
+            }
+        }
+        return bones;
+    }
+
+    private static List<ModelPart> atlasPath(ModelPart root, String bone) {
+        String name = bone.toLowerCase(Locale.ROOT);
+        List<ModelPart> path = firstPath(root, name::equals);
+        // La raíz no: ocultarla ocultaría el Pokémon entero
+        return path == null || path.size() < 2 ? null : path;
+    }
+
+    /**
+     * La cabeza del atlas (lo que mira al jugador, o la de un resource pack) como camino desde la raíz, o null.
+     *
+     * @param first true para la que va antes que los nombres (la de un pack, o cualquiera con "prefer"); false para la
+     *              que rellena cuando los nombres no encuentran nada ("fill")
+     */
+    private static List<ModelPart> atlasHead(ModelPart root, Skeleton atlas, boolean first) {
+        if (atlas.head() == null) {
+            return null;
+        }
+        boolean wins = atlas.corrected().contains(Role.HEAD) || SkeletonAtlas.getMode() == SkeletonAtlas.Mode.PREFER;
+        if (first ? !wins : SkeletonAtlas.getMode() != SkeletonAtlas.Mode.FILL) {
+            return null;
+        }
+        return atlasPath(root, atlas.head());
+    }
+
+    /** La cola: la de un pack; si no, la de los nombres o, si no tienen, la del atlas ("prefer": al revés). */
+    private static Tail atlasTail(ModelPart root, Skeleton atlas, Tail named, List<HeadBone> heads) {
+        List<SkeletonClassifier.Part> parts = new ArrayList<>();
+        boolean corrected = atlas.corrected().contains(Role.TAIL);
+        for (SkeletonClassifier.Part part : atlas.of(Role.TAIL)) {
+            if (corrected || usable(part)) {
+                parts.add(part);
+            }
+        }
+        if (!corrected && (named != null && SkeletonAtlas.getMode() != SkeletonAtlas.Mode.PREFER || parts.isEmpty())) {
+            return named;
+        }
+        List<HeadBone> roots = new ArrayList<>();
+        for (HeadBone bone : atlasBones(root, parts)) {
+            // Lo de dentro de una cabeza va con ella (pelo, no cola)
+            if (!insideAnother(bone.path, heads) && !containsHead(heads, bone.part)) {
+                roots.add(bone);
+            }
+        }
+        if (roots.isEmpty()) {
+            return corrected ? null : named;
+        }
+        HeadBone anchor = roots.getFirst();
+        for (HeadBone candidate : roots) {
+            if (cubes(candidate.part) > cubes(anchor.part)) {
+                anchor = candidate;
+            }
+        }
+        return new Tail(List.copyOf(roots), anchor);
+    }
+
+    /** Las alas del atlas que se usan (ver usable), para dar la clase "wing" a los adornos que las llevan. */
+    private static List<ModelPart> atlasWings(ModelPart root, Skeleton atlas) {
+        List<SkeletonClassifier.Part> parts = new ArrayList<>();
+        for (SkeletonClassifier.Part part : atlas.of(Role.WING)) {
+            if (atlas.corrected().contains(Role.WING) || usable(part)) {
+                parts.add(part);
+            }
+        }
+        List<ModelPart> wings = new ArrayList<>();
+        for (HeadBone bone : atlasBones(root, parts)) {
+            wings.add(bone.part);
+        }
+        return wings;
     }
 
     /**
@@ -2948,7 +3229,7 @@ public final class FusionGraft {
      * tronco ("torso"), y son del tronco.
      */
     private static List<Decoration> findDecorations(List<ModelPart> headPath, List<HeadBone> heads, Tail tail,
-                                                    ModelPart cluster) {
+                                                    ModelPart cluster, List<ModelPart> wings) {
         List<Decoration> found = new ArrayList<>();
         for (int i = 0; i < headPath.size() - 1; i++) {
             // "neck", "neck2", "lowernecc" (así, con cc, los de Groudon de AllTheMons)... Y lo que cuelga del hueso
@@ -2962,6 +3243,11 @@ public final class FusionGraft {
                     continue;
                 }
                 String category = category(child.getKey());
+                // Lo que aletea al volar es un ala aunque se llame de otra forma ("group", "feathers_left", los
+                // "brazos" de Delibird): ver SkeletonAtlas. Así cambia las alas del cuerpo, como las que se llaman "wing"
+                if (!WING.equals(category) && holdsAny(part, wings)) {
+                    category = WING;
+                }
                 // Los brazos (y las manos sueltas) son anatomía, pero se apuntan: un cuerpo sin cabeza puede llevarlos
                 // (ver graft)
                 if (category == null && (isArm(child.getKey()) || isHand(child.getKey()))) {
@@ -3128,6 +3414,16 @@ public final class FusionGraft {
     private static boolean holdsHead(ModelPart part, List<HeadBone> heads) {
         for (HeadBone head : heads) {
             if (holds(part, head.part)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** ¿Lleva dentro (o es) alguno de estos huesos? */
+    private static boolean holdsAny(ModelPart node, List<ModelPart> targets) {
+        for (ModelPart target : targets) {
+            if (holds(node, target)) {
                 return true;
             }
         }

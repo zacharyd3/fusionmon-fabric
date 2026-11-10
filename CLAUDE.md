@@ -12,7 +12,9 @@ Mod de **NeoForge** (hasta el 2026-10-24, Fabric: ver "NeoForge" más abajo) par
 ## Entorno y comandos
 
 - Gradle corre con **Java 26**; ModDevGradle compila y lanza Minecraft con **Java 21** (`java.toolchain` en `build.gradle`: la detecta en `~/.jdks`). Es deliberado, no cambiarlo.
-- Compilar (PowerShell): `$env:JAVA_HOME='C:\Users\Arnau\.jdks\temurin-26.0.2.1'; .\gradlew.bat build`
+- Compilar (PowerShell): `$env:JAVA_HOME='C:\Users\Arnau\.jdks\temurin-26.0.2.1'; .\gradlew.bat build`. En una sesión
+  en la nube (Linux): `bash ./gradlew build` (el `gradlew` del repositorio no tiene permiso de ejecución); el entorno
+  `fusionmon-fabric` deja pasar Maven de NeoForge, Cobblemon, Kotlin for Forge y Mojang.
 - Lanzar el juego: lo mismo con `runClient`, o la configuración "Minecraft Client" de IntelliJ. El jugador de desarrollo se llama siempre `Arnau` (`build.gradle` → `neoForge.runs.client`), para que Cobblemon conserve equipo/PC entre arranques.
 - `git` no está en el PATH: usar el de GitHub Desktop, `%LOCALAPPDATA%\GitHubDesktop\app-*\resources\app\git\cmd\git.exe`.
 - Logs y crashes: `run/logs/latest.log`, `run/crash-reports/`. Showdown desempaquetado en `run/showdown/`.
@@ -124,6 +126,47 @@ Equivalencias y trampas del cambio:
   - Capas: todo lo pegado se pinta también con las capas de su especie (`layerType`/`tinted`, como `PosableModel.render`: llama de Charmander, ojos que brillan), una pasada por capa.
   - Especie de cabeza sin modelo (Groudon, Kyogre, Raikou… en Cobblemon 1.8.1 solo hay ~890 modelos de 1025 especies) → se pinta el cuerpo con sus colores en vez del sustituto (`onlyBody`).
 - `client/model/FusionCustomModels` — **fusiones hechas a mano** (2026-10-20, idea del usuario: como los sprites de la comunidad de Infinite Fusion). Un resource pack trae un resolver normal de Cobblemon para la especie de la **cabeza**, en un archivo propio con `"order"` alto (100), con una variación `"aspects": ["fusionmon-body-<cuerpo>"]` y su `poser`/`model`/`texture`/`layers` (poner `layers` aunque sea `[]`: si no, se heredan las de la cabeza). Cobblemon junta los resolvers de una especie ordenados por `order` y usa la última variación que encaja, así que la del pack gana sin borrar nada. `isCustom` mira si la variación que va a usar Cobblemon (la última que encaja con modelo o textura) pide `fusionmon-body-*`; entonces `FusionGraft.graft` devuelve null, `VaryingRenderableResolverMixin` no recolorea y `getTextureNoSubstitute` hace lo de siempre: Cobblemon la pinta tal cual (mundo, menús, silueta, Fusion Album). Nombre, tipos y stats siguen calculados. Caché por objeto resolver (`WeakHashMap`): al recargar recursos hay resolvers nuevos. Ejemplo en `examples/custom-fusion-example` (Pikachu + Charizard = Raichu shiny; probado en el visor). En el visor sale "Modelo hecho a mano". Guía para artistas (inglés): `docs/custom-fusions.md`. Solo cambia el aspecto: tipos/stats/habilidades no se pueden sustituir (tendría que ser un datapack del servidor; idea para más adelante). `tools/fusion-starter-model.ps1` genera un modelo de partida (cuerpo + cabeza de otro + textura combinada + capas ampliadas) para Blockbench; probado con Pikachu + Charizard (sale en el juego), pero **la cabeza queda mal orientada** si el modelo del cuerpo no está en reposo en el archivo (Charizard mira al cielo y lo bajan sus animaciones): hay que girarla a mano. Llega con la 0.1.2-beta, **solo en Cobblemon 1.8+** (`isCustom` devuelve false si no es `CobblemonCompat.MODERN`; decisión del usuario 2026-10-20: solo probado allí). Probado con el jar en `CF 1.8.2`; la 0.1.2 en Cobbleverse, todo lo demás bien.
+- `client/model/atlas/` — **atlas de esqueletos** (2026-11, idea "moonshot" #4): qué es cada hueso según cómo se
+  **mueve**, no cómo se llama. `SkeletonClassifier` (puro, sin clases de Minecraft): cabeza = lo que mira al jugador
+  (`q.look` del poser; si una lleva `locator_head`, esa); patas = lo que se balancea al andar, llega al suelo y va hacia
+  abajo, por parejas; brazos = lo que se balancea a los lados en la mitad de arriba; alas = lo que aletea al volar desde
+  la espalda; cola = lo que se mece detrás, en el centro, hacia atrás. Lo declarado por animaciones de código
+  (`q.biped_walk`, `q.quadruped_walk`, `q.bimanual_swing`, `q.sine_wing_flap`) manda sobre el movimiento.
+  `SkeletonAtlas` lo alimenta en el juego con el motor de Cobblemon (24 instantes de las poses de estar, andar y volar,
+  `BedrockAnimation.run` con contexto null; deja el modelo en `setDefault`) y lo guarda por modelo; todo en try/catch
+  de `Throwable` (con otra versión de Cobblemon, un `LinkageError`). `SkeletonOverrides`: correcciones de resource packs
+  en `assets/<ns>/fusionmon/skeletons/*.json` (por modelo `.geo`; mandan sobre todo). En `FusionGraft.findHeads`
+  (`atlasParts`/`atlasHead`/`atlasTail`/`atlasWings`): `/fusionvisual atlas off|fill|prefer` (desarrollo; por defecto
+  **fill**: los nombres primero, el atlas para lo que no encuentran; del movimiento solo cabeza, patas y alas, porque
+  simulado sobre todos los modelos los brazos salían aletas o bufandas y las colas pelo u hojas). La cabeza del atlas va
+  antes de `faceHolder` y sin `withSkull` (subiría `head_ai` hasta el cuello). El inspector enseña una línea "Skeleton
+  atlas"; `/fusionatlas export` (desarrollo) escribe `run/fusionmon/skeleton-atlas.json`. Simulación fuera del juego:
+  `tools/skeleton-atlas/SkeletonAtlasCheck.java` (solo un JDK; Molang propio y aproximado) → `docs/species/skeleton-atlas.{md,csv}`
+  (Cobblemon 1.8.2: 748 modelos con poser JSON; los posers en Kotlin solo en el juego). Guía: `docs/skeleton-atlas.md`;
+  ejemplo: `examples/skeleton-override-example`. **Sin probar en el juego todavía.**
+- **Gritos y animaciones de las fusiones** (2026-11, #6): `client/sound/FusionCry` + `client/mixin/BedrockSoundKeyframeMixin`:
+  Cobblemon toca los gritos desde fotogramas de sonido de la animación "cry" (`pokemon.<especie>.cry`); en una fusión
+  suenan el de la cabeza y el del cuerpo a la vez (`AbstractTickableSoundInstance`, la cabeza de 1 a 0,45 y el cuerpo,
+  3 ticks después y algo más grave, de 0,5 a 0,9 en 20 ticks). Con cabeza sobre cuerpo el que anima es el modelo del
+  cuerpo (`FusionGraft.speaksAsBody`); en modo colores, el de la cabeza. Si el grito de la otra parte no existe, suena el
+  original. `/fusionvisual cries blend|plain` (todos). `client/mixin/PosableStateMixin` (`addFirstAnimation`: grito,
+  ataques, retroceso, evolución que manda el servidor) → `FusionGraft.mirrorAnimation`: la cabeza pegada hace las
+  suyas en su `FloatingState`; también se desmaya con el cuerpo (`isDeadOrDying`). Los sonidos de las cabezas pegadas
+  no suenan (sonarían como sonido de menú). Pose de la cabeza (`FusionGraft.HeadPose`, `/fusionvisual headpose
+  stand|sleep|all`, desarrollo): por defecto de pie salvo dormida cuando el cuerpo duerme. **Sin probar en el juego.**
+- **World First** (2026-11, #9): `worldfirst/WorldFirst` (servidor): si `worldFirstUrl` + `worldFirstToken` en
+  `config/fusionmon.json` (vacíos por defecto: no sale nada), cada pareja nueva para un jugador (`FusionDiscovery.register`
+  ahora devuelve si lo es) se manda a un servicio común; la primera de todos los servidores es un World First y se
+  anuncia en el chat del servidor (y en Discord desde el servicio). `HttpClient` asíncrono, vuelta al hilo del servidor
+  con `server.execute`; cola en la partida (`<mundo>/fusionmon/worldfirst-queue.json`) con reintentos (15 s doblando hasta
+  10 min); con 401/403 deja de insistir hasta reiniciar. Nombre del jugador: `worldFirstShowNames` (por defecto sí) y
+  `/worldfirst name show|hide|default` (attachment `fusionmon:world_first_name`); anónimo = `anon-` + SHA-256(token +
+  UUID). Aviso al entrar la primera vez. `/worldfirst`: estado y cifras. El servicio está en **`worldfirst/`**
+  (Cloudflare Worker + D1, o **Docker en un servidor propio** —el usuario lo tiene todo en su Unraid, sin cuenta de
+  Cloudflare—: `src/server.js` + `src/d1-sqlite.js`, SQLite en `/data`; JS sin dependencias; `npm test` con `node:sqlite`;
+  instalación en `worldfirst/README.md`):
+  tokens por servidor (solo su hash), límites por hora, banear/rotar, página con la clasificación. **El servicio no está
+  desplegado** (ni la imagen Docker construida: en la sesión en la nube no había daemon de Docker).
 - `fusion/FusionBodyForm` (común) — forma del cuerpo en servidor (persistentData) y cliente (aspects de la entidad). La fusión tiene **tamaño y montura del cuerpo**: `PokemonEntityMixin` (escala y caja de colisión en `getDimensions`, recalculada al cambiar los aspects; montura en `getSeats`/`getRideProp`/`refreshRiding`), `PokemonMixin` (`getRiding` y estadísticas de montura), `RidingControllerMixin`; cliente: `PokemonRendererMixin` (escala al pintar), `ClientboundSeatAssignmentPacketHandlerMixin`, `StatWidgetMixin`. **Solo se monta si el cuerpo se puede montar** (sin plan B con la montura de la cabeza: con el modelo del cuerpo iba desacoplada; decisión del usuario, 2026-10-10). **Hombro** (2026-10-21, aviso del servidor CobbleFusion): también manda el cuerpo — subirse (`PokemonEntityMixin`, `canSitOnShoulder`/`method_6626`), seguir arriba (`PlayerPartyStoreMixin`, `validateShoulder`) y escala/caja al pintarlo (`client/mixin/PokemonOnShoulderRendererMixin`, forma de `FusionBodyForm.fromAspects`); los efectos de hombro siguen siendo los de la cabeza. Cobblemon pinta el hombro dos veces, la primera sin `model.currentState` (el graft no actúa y salía la cabeza original del cuerpo): en fusiones esa pasada se salta. Ojo: esa clase tiene varios `render`, y con solo el nombre Mixin coge el primero (crash al arrancar): `"render*"`.
 - `screen/FusionAlbumScreen` — **Fusion Album del jugador**: sus fusiones descubiertas (lista con buscador, de la más reciente a la más antigua, contador; la elegida en 3D con nombre, tipos, partes y stats). Se abre con **Shift + clic derecho con el inyector** o **`/fusionalbum`** (comando del servidor, para todos): `FusionDiscovery.open` → `OpenFusion AlbumPayload` con las claves. Las fusiones que el jugador ya tenía antes del registro se apuntan una vez al entrar (`registerExisting`).
 - `screen/FusionDexScreen` — **visor de todas las fusiones** (`/fusionviewer`, comando de cliente, solo en desarrollo; la pantalla se abre con `client.tell` porque al acabar un comando se cierra el chat): cabeza y cuerpo entre las especies con modelo (buscar por nombre/número, ←/→ cuerpo, ↑/↓ cabeza, R azar, S intercambiar, C cámara; arrastrar izq. gira, der. mueve, rueda zoom), nombre/tipos/stats y botones de shiny, sexo y modos de `/fusionvisual`. Pinta un `RenderablePokemon` con los aspects de fusión (como la vista previa): pasa por el mismo graft que el juego. **Herramienta principal para probar visuales.** Renders para portadas (2026-10-19): **V** fusión / solo cabeza / solo cuerpo, **B** silueta negra, **P** guarda lo que se ve como PNG 2048×2048 con fondo transparente en `run/fusionmon/renders` (`ModelViewport.export`: pinta en un `TextureTarget` transparente con su propia proyección, durante el render de la pantalla porque necesita la matriz de la interfaz; `drawProfilePokemon` vacía él mismo el búfer de Minecraft). En la rama 1.7.3 el `draw` de `ModelViewport` lleva la firma de 1.7.3 (conflicto al hacer merge). `FusionTextures` guarda como mucho 256 texturas generadas (LRU) para poder recorrer cientos de fusiones.
