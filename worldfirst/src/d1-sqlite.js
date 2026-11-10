@@ -1,10 +1,19 @@
-// A stand-in for Cloudflare D1 over Node's built-in SQLite (node:sqlite), for the tests: same SQL engine, the parts of
-// the D1 API the Worker uses (prepare, bind, first, all, run, batch).
+// D1 (the database Cloudflare gives the Worker) over Node's built-in SQLite (node:sqlite), for running the service on
+// your own machine (src/server.js, the Docker image) and for the tests: same SQL engine, the parts of the D1 API the
+// Worker uses (prepare, bind, first, all, run, batch).
 import { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
 
-export function createD1(schemaPath) {
-  const db = new DatabaseSync(":memory:");
+/**
+ * @param schemaPath schema.sql (every statement is CREATE ... IF NOT EXISTS, so applying it at every start is safe)
+ * @param file       the database file, or ":memory:"
+ */
+export function createD1(schemaPath, file = ":memory:") {
+  const db = new DatabaseSync(file);
+  if (file !== ":memory:") {
+    // Safer against a power cut, and readers don't block the writer
+    db.exec("PRAGMA journal_mode = WAL");
+  }
   db.exec(readFileSync(schemaPath, "utf8"));
 
   class Statement {
@@ -44,5 +53,6 @@ export function createD1(schemaPath) {
         throw error;
       }
     },
+    close: () => db.close(),
   };
 }

@@ -2,7 +2,7 @@ import { test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import worker from "../src/index.js";
-import { createD1 } from "./d1.js";
+import { createD1 } from "../src/d1-sqlite.js";
 
 const SCHEMA = fileURLToPath(new URL("../schema.sql", import.meta.url));
 const ADMIN = "admin-secret";
@@ -19,7 +19,7 @@ beforeEach(() => {
   posted = [];
   globalThis.fetch = async (url, init) => {
     posted.push({ url, body: JSON.parse(init.body) });
-    return new Response("", { status: 204 });
+    return new Response(null, { status: 204 });
   };
 });
 

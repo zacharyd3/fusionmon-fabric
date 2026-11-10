@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node --test --no-warnings test/*.test.js",
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "start": "node --disable-warning=ExperimentalWarning src/server.js"
   },
   "engines": {
     "node": ">=22.13"

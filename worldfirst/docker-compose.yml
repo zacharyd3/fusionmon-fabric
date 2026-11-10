@@ -1,0 +1,18 @@
+# docker compose up -d --build   (Unraid: the Compose Manager plugin, or the terminal in this folder)
+# Put ADMIN_TOKEN (and DISCORD_WEBHOOK_URL if you want) in a .env file next to this one, never here.
+services:
+  worldfirst:
+    build: .
+    container_name: fusionmon-worldfirst
+    restart: unless-stopped
+    # Unraid's appdata belongs to nobody:users (99:100); elsewhere, any user that can write the data folder
+    user: "99:100"
+    ports:
+      - "8787:8787"
+    volumes:
+      - /mnt/user/appdata/fusionmon-worldfirst:/data
+    environment:
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+      REGISTRATION: closed
+      TOTAL_SPECIES: "1025"
